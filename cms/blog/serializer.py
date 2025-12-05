@@ -1,0 +1,91 @@
+from rest_framework import serializers
+from .models import Posts,UserProfile, CLASS_CHOICES, Comments
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Posts
+        fields = ('id','category','author', 'title', 'banner', 'hook' ,'content', 'created_at', 'published' ,'allowed')
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    # Поле за избор на клас (използваме choices, но го правим write_only)
+    class_name = serializers.ChoiceField(
+        choices=CLASS_CHOICES,
+        write_only=True,
+        required=False,
+        error_messages={'invalid_choice': 'Невалиден избор на клас.'}
+    )
+
+    # Поле за парола (само за писане и с валидация)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+
+    # Поле за потвърждение на паролата (не се запазва в модела)
+    password2 = serializers.CharField(
+        write_only=True,
+        required=True
+    )
+
+    class Meta:
+        model = User
+        # Включваме class_name в списъка fields, въпреки че не е част от User модела
+        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name', 'class_name')
+
+        # Правим тези полета задължителни
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'email': {'required': True},
+        }
+
+    # Метод за валидация на всички полета
+    def validate(self, attrs):
+        # Проверка дали паролите съвпадат
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Паролите не съвпадат."})
+
+        # Премахваме password2, тъй като не ни е нужно повече
+        attrs.pop('password2')
+        return attrs
+
+    # Метод за създаване на обекта (User и UserProfile)
+    def create(self, validated_data):
+        # 1. Вземаме class_name и го премахваме от validated_data
+        class_name = validated_data.pop('class_name', None)
+
+        # 2. Създаваме стандартния User
+        user = User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        # 3. Създаваме свързания UserProfile
+        UserProfile.objects.create(user=user, class_name=class_name)
+
+        return user
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    # 1. ЕКСПЛИЦИТНО ДЕФИНИРАНО ПОЛЕ
+    # post_id е тук, за да вземе стойността 'id' от свързания пост
+    username = serializers.CharField(source='user.username', read_only=True)
+    post_id = serializers.IntegerField(source='post.id', read_only=True)
+
+    class Meta:
+        # 2. Трябва да имате модел
+        model = Comments
+
+        # 3. ❗ ТРЯБВА ДА ВКЛЮЧИТЕ post_id в списъка fields!
+        # DRF изисква това, защото сте го дефинирали в тялото на класа.
+        fields = ['id', 'post_id', 'username', 'content', 'created_at']
+        read_only_fields = ['id', 'created_at', 'username', 'post_id']
+

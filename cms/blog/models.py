@@ -17,7 +17,7 @@ class Posts(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     banner = models.TextField(max_length=100)
     hook = models.TextField(max_length=100)
-    content = models.TextField(blank=False)
+    content = models.TextField(blank=False, )
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     published = BooleanField()
@@ -65,4 +65,42 @@ class MemeOfWeek(models.Model):
         return self.location
 
 
+CLASS_CHOICES = (
+    ('8a', '8 А'),
+    ('8b', '8 Б'),
+    ('8v', '8 В'),
+
+    ('9a', '9 А'),
+    ('9b', '9 Б'),
+    ('9v', '9 В'),
+
+    ('10a', '10 А'),
+    ('10b', '10 Б'),
+    ('10v', '10 В'),
+
+    ('11a', '11 А'),
+    ('11b', '11 Б'),
+    ('11v', '11 В'),
+
+    ('12a', '12 А'),
+    ('12b', '12 Б'),
+)
+
+
+class UserProfile(models.Model):
+    # Първият елемент в tuples е стойността, която се запазва в базата данни (напр. '10a')
+    # Вторият елемент е стойността, която се показва на потребителя (напр. '10 А')
+    class_name = models.CharField(
+        max_length=5,  # Максимална дължина на стойността ('10v')
+        choices=CLASS_CHOICES,  # ❗ Използваме choices
+        blank=True,
+        null=True,
+        verbose_name="Клас"
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        # ...
+        return f"Профил на {self.user.username}"
 # Create your models here.

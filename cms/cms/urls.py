@@ -15,8 +15,30 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    # Може да добавите и TokenVerifyView, но не е задължително
+)
+from blog import views as blog_views
+
+router = DefaultRouter()
+router.register('posts', blog_views.PostViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),
+
+    path('api/posts/<int:post_pk>/comments/', blog_views.CommentList.as_view(), name='comment-list'),
+
+    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+
+    path('api/posts/<int:post_pk>/comments/add/', blog_views.CommentCreate.as_view(), name='post-comments'),
+    # ...
+
+
+    # ОПРЕСНЯВАНЕ: Взема REFRESH токен, връща нов ACCESS токен
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
