@@ -8,6 +8,7 @@ class Category(models.Model):
     short_name = models.SlugField(max_length=100, unique=True)
     def __str__(self):
         return self.full_name
+
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
@@ -64,7 +65,6 @@ class MemeOfWeek(models.Model):
     def __str__(self):
         return self.location
 
-
 CLASS_CHOICES = (
     ('8a', '8 А'),
     ('8b', '8 Б'),
@@ -83,9 +83,28 @@ CLASS_CHOICES = (
     ('11v', '11 В'),
 
     ('12a', '12 А'),
-    ('12b', '12 Б'),
-)
+    ('12b', '12 Б'),)
 
+TYPE_CHOICES = (
+    ('8a', '8 А'),
+    ('8b', '8 Б'),
+    ('8v', '8 В'),
+
+    ('9a', '9 А'),
+    ('9b', '9 Б'),
+    ('9v', '9 В'),
+
+    ('10a', '10 А'),
+    ('10b', '10 Б'),
+    ('10v', '10 В'),
+
+    ('11a', '11 А'),
+    ('11b', '11 Б'),
+    ('11v', '11 В'),
+
+    ('12a', '12 А'),
+    ('12b', '12 Б'),
+    ('teacher', 'TEACHER'))
 
 class UserProfile(models.Model):
     # Първият елемент в tuples е стойността, която се запазва в базата данни (напр. '10a')
@@ -104,3 +123,47 @@ class UserProfile(models.Model):
         # ...
         return f"Профил на {self.user.username}"
 # Create your models here.
+
+class Cookie(models.Model):
+    class ConsentRecord(models.Model):
+        # Данни за потребителя
+        user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+        ip_address = models.CharField(max_length=45, blank=True, null=True)  # До 45 за IPv6
+
+        # Резултат
+        STATUS_CHOICES = [
+            ('INFORMED', 'Информиран (Необходими)'),  # Вашият случай
+            ('ACCEPTED', 'Приел'),
+            ('REJECTED', 'Отказал'),
+        ]
+        consent_status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+        # Доказателство
+        timestamp = models.DateTimeField(auto_now_add=True)
+        policy_version = models.CharField(max_length=10, default='v1.0')  # Трябва да се променя ръчно
+
+        # Опционални (за бъдещето)
+        analytical_accepted = models.BooleanField(default=False)
+        marketing_accepted = models.BooleanField(default=False)
+
+        def __str__(self):
+            return f"Consent: {self.consent_status} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+class Program(models.Model):
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    day = models.DateField
+
+    def __str__(self):
+        # Връщаме кратък низ, който идентифицира обекта.
+        return f"Програма: {self.name} ({self.type})"
+
+class FormCreate(models.Model):
+    name = models.CharField(max_length=50)
+    email = models.EmailField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    clas = models.ForeignKey(User, on_delete=models.CASCADE)
+    location = models.TextField(blank=False)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+

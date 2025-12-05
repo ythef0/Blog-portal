@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments
+from blog.models import Posts, Category, UserProfile, Comments, Program
 from django.contrib import admin
 #from django.contrib.auth.models import User
 from unfold_markdown.widgets import MarkdownWidget
@@ -78,3 +78,6 @@ class CommentsAdmin(admin.ModelAdmin):
     list_display = ('user', 'content', 'created_at', 'post')
     search_fields = ('user', 'content')
 
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = ('name','type', )

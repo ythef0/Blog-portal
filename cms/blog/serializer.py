@@ -4,10 +4,32 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
 class PostSerializer(serializers.ModelSerializer):
+    # 1. Дефинирайте ново поле, което ще извика метод
+    author_username = serializers.SerializerMethodField()
+    # 2. Може да използвате StringRelatedField за категорията, ако сте я дефинирали като __str__
+    category_name = serializers.StringRelatedField(source='category')
+
     class Meta:
         model = Posts
-        fields = ('id','category','author', 'title', 'banner', 'hook' ,'content', 'created_at', 'published' ,'allowed')
+        fields = (
+            'id',
+            'category',       # Запазваме ID за бъдещи филтрирания
+            'category_name',  # ⬅️ Добавено: Име на категория
+            'author',         # Запазваме ID на автора
+            'author_username',# ⬅️ Добавено: Потребителско име
+            'title',
+            'banner',
+            'hook',
+            'content',
+            'created_at',
+            'published',
+            'allowed'
+        )
 
+    # 3. Дефинирайте метода за получаване на потребителското име
+    def get_author_username(self, obj):
+        # Приемаме, че obj.author е инстанция на User модела
+        return obj.author.username
 
 class RegisterSerializer(serializers.ModelSerializer):
     # Поле за избор на клас (използваме choices, но го правим write_only)
