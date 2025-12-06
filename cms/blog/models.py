@@ -149,21 +149,3 @@ class Cookie(models.Model):
         def __str__(self):
             return f"Consent: {self.consent_status} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
 
-class Program(models.Model):
-    name = models.CharField(max_length=100)
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
-    day = models.DateField
-
-    def __str__(self):
-        # Връщаме кратък низ, който идентифицира обекта.
-        return f"Програма: {self.name} ({self.type})"
-
-class FormCreate(models.Model):
-    name = models.CharField(max_length=50)
-    email = models.EmailField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    clas = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.TextField(blank=False)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-

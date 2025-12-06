@@ -1,7 +1,10 @@
-#from django.shortcuts import render
-
-from rest_framework import viewsets, generics, serializers
+from rest_framework import viewsets, generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.views import APIView # За ръчно POST управление
+from rest_framework.response import Response # За връщане на отговор
+from django.shortcuts import get_object_or_404
+
+# Импортиране на модели и сериализатори
 from .models import Posts, Comments
 from .serializer import PostSerializer, RegisterSerializer, CommentSerializer
 from django.contrib.auth.models import User
@@ -23,40 +26,58 @@ class RegisterView(generics.CreateAPIView):
 
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
+    http_method_names = ['get', 'post', 'options', 'head']
 
     def get_queryset(self):
-        # Взимаме post_id от URL параметрите
-        post_id = self.kwargs.get('post_id')
+        post_id = self.kwargs.get('post_pk')
 
-        # ❗ Филтрираме queryset-а по ID на поста
-        if post_id:
-            return Comments.objects.filter(post_id=post_id).order_by('-created_at')
+        # 1. Ако липсва post_id, връщаме празен QuerySet, за да не показваме всички
+        if not post_id:
+            return Comments.objects.none()
 
-        return Comments.objects.all()
+            # 2. Опитваме се да намерим поста, за да се уверим, че съществува
+        # Ако постът не съществува, get_object_or_404 ще хвърли 404 Not Found.
+        post = get_object_or_404(Posts, id=post_id)
 
-class CommentCreate(generics.ListCreateAPIView):
-    serializer_class = CommentSerializer
+        # 3. Връщаме филтрирания QuerySet
+        return Comments.objects.filter(post=post).order_by('-created_at')
+
+
+class AddCommentAPIView(APIView):
+    # 🛡️ Изисква Access Token (JWT)
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        post_id = self.kwargs.get('post_id')
-        return Comments.objects.filter(post_id=post_id).order_by('-created_at')
+    def post(self, request, post_id): # Аргументът трябва да е post_id
 
-    def perform_create(self, serializer):
-        # 1. Вземаме ID-то на поста от URL параметъра
-        post_id = self.kwargs['post_pk']
+        # 1. Валидация на Пост
+        post = get_object_or_404(Posts, id=post_id)
 
-        # 2. Вземаме обекта на поста (ако приемем, че моделът ви се казва Posts)
-        # ❗ ВАЖНО: Трябва да импортирате Posts модела (напр. from .models import Posts)
+        # 2. Извличане на съдържанието
+        content = request.data.get('content')
 
+        if not content or len(content.strip()) == 0:
+            return Response({'content': 'Comment content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 3. Създаване на Коментара
         try:
-            post_instance = Posts.objects.get(id=post_id)
-        except Posts.DoesNotExist:
-            # Може да хвърлите 404 грешка, ако постът не съществува
-            raise serializers.ValidationError("Постът не е намерен.")
+            comment = Comments.objects.create(
+                user=request.user,              # Взема се от JWT токена
+                post=post,                      # Взема се от URL параметъра
+                content=content                 # Взема се от тялото на заявката
+            )
+        except Exception as e:
+            print(f"Error creating comment: {e}")
+            return Response({'detail': 'Internal server error during comment creation.'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # 3. Запазваме коментара, като автоматично подаваме user и post:
-        serializer.save(
-            user=self.request.user,  # Взема потребителя от JWT токена
-            post=post_instance  # Подава обекта на поста
-        )
+        # 4. Подготовка на отговора
+        # Тъй като не използваме сериализатор, връщаме го ръчно
+        comment_data = {
+            'id': comment.id,
+            'post_id': comment.post.id,
+            'username': comment.user.username,
+            'content': comment.content,
+            'created_at': comment.created_at.isoformat().replace('+00:00', 'Z')
+        }
+
+        return Response(comment_data, status=status.HTTP_201_CREATED)

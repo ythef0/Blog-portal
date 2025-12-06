@@ -35,7 +35,7 @@ urlpatterns = [
 
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 
-    path('api/posts/<int:post_pk>/comments/add/', blog_views.CommentCreate.as_view(), name='post-comments'),
+    path('api/posts/<int:post_pk>/comments/add/', blog_views.AddCommentAPIView.as_view(), name='post-comments'),
     # ...
 
 
