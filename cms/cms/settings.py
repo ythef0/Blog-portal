@@ -72,6 +72,51 @@ ROOT_URLCONF = 'cms.urls'
 
 JAZZMIN_SETTINGS = {
     "show_ui_builder": True,  # This enables the gear icon in the admin
+    # Title of the window (Browser tab)
+    "site_title": "ПГКНМА Блог",
+
+    # Title on the brand, and login screen (19 chars max)
+    "site_header": "ПГКНМА БЛог",
+
+    # Brand logo text (if no logo is used)
+    "site_brand": "ПГКНМА Админ",
+
+    # Welcome text on the login screen
+    "welcome_sign": "Welcome to the SuperApp Admin",
+
+    "copyright": "ПГКНМА Блог",
+
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": True,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
+    "actions_sticky_top": False
+
 }
 
 TEMPLATES = [
