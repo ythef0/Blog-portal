@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfUser
 from django.contrib import admin
 #from django.contrib.auth.models import User
 from unfold_markdown.widgets import MarkdownWidget
@@ -131,3 +131,38 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         # Prevent editing of submissions
         return False
+
+
+from django.contrib import admin
+from .models import TermsOfUser
+
+
+@admin.register(TermsOfUser)
+class TermsOfUserAdmin(admin.ModelAdmin):
+    list_display = ('user', 'content_preview', 'date')
+    list_filter = ('date',)
+    search_fields = ('user__username', 'content')
+
+    # 1. Използваме вече наличния в проекта ти MarkdownWidget за редактора
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "content":
+            kwargs["widget"] = MarkdownWidget()
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+    # 2. Правилен запис в базата данни
+    def save_model(self, request, obj, form, change):
+        if not obj.user:
+            obj.user = request.user
+        # super().save_model е критично, за да се извърши самият запис
+        super().save_model(request, obj, form, change)
+
+    # 3. Визуализация в списъка без да създаваме нови обекти
+    def content_preview(self, obj):
+        if obj.content:
+            # Превръщаме текста в HTML, за да се вижда форматиран в таблицата
+            # Използваме стандартния markdown пакет, който unfold_markdown изисква
+            html = markdown.markdown(obj.content)
+            return mark_safe(html[:150] + "..." if len(html) > 150 else html)
+        return "-"
+
+    content_preview.short_description = 'Преглед'

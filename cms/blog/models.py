@@ -226,3 +226,12 @@ class Notification(models.Model):
         verbose_name_plural = "Известия"
         ordering = ['-created_at']
 
+class TermsOfUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, verbose_name="Автор")
+    content = models.TextField(null=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.content} качено на : {self.user.username}"
+
+

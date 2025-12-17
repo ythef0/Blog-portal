@@ -33,7 +33,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'unfold',
+    #'unfold',
+    'jazzmin',
     'unfold_markdown',
     'corsheaders',
     'django.contrib.admin',
@@ -69,6 +70,10 @@ INTERNAL_IPS = [
 
 ROOT_URLCONF = 'cms.urls'
 
+JAZZMIN_SETTINGS = {
+    "show_ui_builder": True,  # This enables the gear icon in the admin
+}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -84,7 +89,6 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'cms.wsgi.application'
 
 
@@ -130,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'bg'
 
 TIME_ZONE = 'UTC'
 
