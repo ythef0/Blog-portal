@@ -53,43 +53,17 @@ class CommentList(generics.ListAPIView):
 
 
 class AddCommentAPIView(APIView):
-    # 🛡️ Изисква Access Token (JWT)
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, post_id): # Аргументът трябва да е post_id
+    def post(self, request, post_pk): # Now accepts post_pk
+        post = get_object_or_404(Posts, id=post_pk) # Use post_pk
 
-        # 1. Валидация на Пост
-        post = get_object_or_404(Posts, id=post_id)
-
-        # 2. Извличане на съдържанието
-        content = request.data.get('content')
-
-        if not content or len(content.strip()) == 0:
-            return Response({'content': 'Comment content cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 3. Създаване на Коментара
-        try:
-            comment = Comments.objects.create(
-                user=request.user,              # Взема се от JWT токена
-                post=post,                      # Взема се от URL параметъра
-                content=content                 # Взема се от тялото на заявката
-            )
-        except Exception as e:
-            print(f"Error creating comment: {e}")
-            return Response({'detail': 'Internal server error during comment creation.'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # 4. Подготовка на отговора
-        # Тъй като не използваме сериализатор, връщаме го ръчно
-        comment_data = {
-            'id': comment.id,
-            'post_id': comment.post.id,
-            'username': comment.user.username,
-            'content': comment.content,
-            'created_at': comment.created_at.isoformat().replace('+00:00', 'Z')
-        }
-
-        return Response(comment_data, status=status.HTTP_201_CREATED)
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            comment = serializer.save(user=request.user, post=post)
+            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_next_sunday_deadline():
