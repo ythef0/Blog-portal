@@ -16,29 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
-    # Може да добавите и TokenVerifyView, но не е задължително
 )
-from blog import views as blog_views
-
-router = DefaultRouter()
-router.register('posts', blog_views.PostViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    
+    # Включване на всички пътища от приложението 'blog' под префикс 'api/'
+    path('api/', include('blog.urls')),
 
-    path('api/posts/<int:post_pk>/comments/', blog_views.CommentList.as_view(), name='comment-list'),
-
+    # Пътища за автентикация с JWT
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-
-    path('api/posts/<int:post_pk>/comments/add/', blog_views.AddCommentAPIView.as_view(), name='post-comments'),
-    # ...
-
-
-    # ОПРЕСНЯВАНЕ: Взема REFRESH токен, връща нов ACCESS токен
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

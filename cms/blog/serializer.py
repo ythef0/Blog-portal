@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, CLASS_CHOICES, Comments
+from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -110,4 +110,63 @@ class CommentSerializer(serializers.ModelSerializer):
         # DRF изисква това, защото сте го дефинирали в тялото на класа.
         fields = ['id', 'post_id', 'username', 'content', 'created_at']
         read_only_fields = ['id', 'created_at', 'username', 'post_id']
+
+
+class PollOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PollOption
+        fields = ['id','key', 'text'] 
+
+class PollQuestionSerializer(serializers.ModelSerializer):
+    options = PollOptionSerializer(many=True, read_only=True)
+    id = serializers.IntegerField(read_only=False)
+    class Meta:
+        model = PollQuestion
+        fields = ['id', 'title', 'subtitle', 'code', 'options']
+
+class PollAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PollAnswer
+        fields = ['question', 'selected_option']
+
+
+class UserPollStatusSerializer(serializers.Serializer):
+    is_locked = serializers.BooleanField()
+    unlocks_at = serializers.DateTimeField(allow_null=True)
+    last_result = serializers.JSONField(allow_null=True) 
+    question = PollQuestionSerializer(allow_null=True)
+
+
+class LeaderboardEntrySerializer(serializers.ModelSerializer):
+    correct_answers = serializers.IntegerField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'correct_answers']
+
+
+class RecentParticipantSerializer(serializers.ModelSerializer):
+    last_answered = serializers.DateTimeField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'last_answered']
+
+
+class PollStatisticsSerializer(serializers.Serializer):
+    leaderboard = LeaderboardEntrySerializer(many=True)
+    recent_participants = RecentParticipantSerializer(many=True)
+
+
+class ContactSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactSubmission
+        fields = ['name', 'email', 'message']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'text', 'enabled', 'created_at']
+
 

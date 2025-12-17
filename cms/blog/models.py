@@ -149,3 +149,80 @@ class Cookie(models.Model):
         def __str__(self):
             return f"Consent: {self.consent_status} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
 
+
+class PollQuestion(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Заглавие")
+    subtitle = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подзаглавие")
+    code = models.TextField(verbose_name="Код")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създаден на")
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Въпрос за анкета"
+        verbose_name_plural = "Въпроси за анкети"
+        ordering = ['-created_at']
+
+
+class PollOption(models.Model):
+    question = models.ForeignKey(PollQuestion, related_name='options', on_delete=models.CASCADE, verbose_name="Въпрос")
+    text = models.CharField(max_length=255, verbose_name="Текст на опция")
+    is_correct = models.BooleanField(default=False, verbose_name="Правилен отговор")
+    key = models.CharField(max_length=1, choices=[('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D')], verbose_name="Ключ")
+
+    def __str__(self):
+        return f"{self.question.title} - {self.text}"
+
+    class Meta:
+        verbose_name = "Опция за анкета"
+        verbose_name_plural = "Опции за анкети"
+        unique_together = ('question', 'key')
+        ordering = ['key']
+
+
+class PollAnswer(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Потребител")
+    question = models.ForeignKey(PollQuestion, on_delete=models.CASCADE, verbose_name="Въпрос")
+    selected_option = models.ForeignKey(PollOption, on_delete=models.CASCADE, verbose_name="Избрана опция")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Отговорено на")
+
+    def __str__(self):
+        return f"{self.user.username} answered {self.question.title}"
+
+    class Meta:
+        verbose_name = "Отговор на анкета"
+        verbose_name_plural = "Отговори на анкети"
+        ordering = ['-created_at']
+
+
+class ContactSubmission(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Потребител")
+    name = models.CharField(max_length=100, verbose_name="Име")
+    email = models.EmailField(verbose_name="Имейл")
+    message = models.TextField(verbose_name="Съобщение")
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Изпратено на")
+
+    def __str__(self):
+        return f"Съобщение от {self.name} ({self.email})"
+
+    class Meta:
+        verbose_name = "Изпратен контактен формуляр"
+        verbose_name_plural = "Изпратени контактни формуляри"
+        ordering = ['-submitted_at']
+
+
+class Notification(models.Model):
+    text = models.CharField(max_length=255, verbose_name="Текст на известието")
+    enabled = models.BooleanField(default=True, verbose_name="Активирано")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създадено на")
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        verbose_name = "Известие"
+        verbose_name_plural = "Известия"
+        ordering = ['-created_at']
+

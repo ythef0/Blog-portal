@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification
 from django.contrib import admin
 #from django.contrib.auth.models import User
 from unfold_markdown.widgets import MarkdownWidget
@@ -77,3 +77,57 @@ class CommentsAdmin(admin.ModelAdmin):
     readonly_fields_base = ('user', 'content' ,'created_at', 'post')
     list_display = ('user', 'content', 'created_at', 'post')
     search_fields = ('user', 'content')
+
+
+class PollOptionInline(admin.TabularInline):
+    model = PollOption
+    extra = 4
+    max_num = 4
+    verbose_name = "Опция"
+    verbose_name_plural = "Опции"
+
+
+@admin.register(PollQuestion)
+class PollQuestionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'created_at')
+    list_filter = ('is_active',)
+    search_fields = ('title', 'subtitle', 'code')
+    inlines = [PollOptionInline]
+
+
+@admin.register(PollAnswer)
+class PollAnswerAdmin(admin.ModelAdmin):
+    list_display = ('user', 'question', 'selected_option', 'created_at')
+    list_filter = ('created_at', 'question')
+    search_fields = ('user__username', 'question__title')
+    readonly_fields = ('user', 'question', 'selected_option', 'created_at')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('text', 'enabled', 'created_at')
+    list_filter = ('enabled', 'created_at')
+    search_fields = ('text',)
+    readonly_fields = ('created_at',)
+
+
+@admin.register(ContactSubmission)
+class ContactSubmissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'submitted_at')
+    list_filter = ('submitted_at',)
+    search_fields = ('name', 'email', 'message')
+    readonly_fields = ('name', 'email', 'message', 'submitted_at', 'user')
+
+    def has_add_permission(self, request):
+        # Prevent manual additions from the admin
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # Prevent editing of submissions
+        return False
