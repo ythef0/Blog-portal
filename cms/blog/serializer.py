@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification
+from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -168,5 +168,11 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'text', 'enabled', 'created_at']
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
 
 

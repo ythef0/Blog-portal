@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfUser
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfUser, Event
 from django.contrib import admin
 #from django.contrib.auth.models import User
 from unfold_markdown.widgets import MarkdownWidget
@@ -133,10 +133,6 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
         return False
 
 
-from django.contrib import admin
-from .models import TermsOfUser
-
-
 @admin.register(TermsOfUser)
 class TermsOfUserAdmin(admin.ModelAdmin):
     list_display = ('user', 'content_preview', 'date')
@@ -166,3 +162,16 @@ class TermsOfUserAdmin(admin.ModelAdmin):
         return "-"
 
     content_preview.short_description = 'Преглед'
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'start_datetime', 'location', 'category', 'attendees_text', 'published', 'created_at')
+    list_filter = ('published', 'category', 'start_datetime')
+    search_fields = ('title', 'description', 'location', 'attendees_text')
+    readonly_fields = ('created_at',)
+    # Use Markdown widget for description field
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "description":
+            kwargs["widget"] = MarkdownWidget(attrs={"rows": 10})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)

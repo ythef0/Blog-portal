@@ -235,3 +235,23 @@ class TermsOfUser(models.Model):
         return f"{self.content} качено на : {self.user.username}"
 
 
+class Event(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Заглавие")
+    start_datetime = models.DateTimeField(verbose_name="Начална дата и час")
+    end_datetime = models.DateTimeField(blank=True, null=True, verbose_name="Крайна дата и час (по избор)")
+    location = models.CharField(max_length=255, verbose_name="Местоположение")
+    category = models.CharField(max_length=100, verbose_name="Категория")
+    description = models.TextField(verbose_name="Описание")
+    attendees_text = models.CharField(max_length=255, verbose_name="Участници (текст)") # To avoid 'attendees' collision
+    published = models.BooleanField(default=True, verbose_name="Публикувано")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създадено на")
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Събитие"
+        verbose_name_plural = "Събития"
+        ordering = ['start_datetime']
+
+

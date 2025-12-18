@@ -24,4 +24,7 @@ urlpatterns = [
 
     # Път за известия
     path('notifications/', blog_views.NotificationListView.as_view(), name='notification-list'),
+
+    # Път за събития
+    path('events/', blog_views.EventListView.as_view(), name='event-list'),
 ]

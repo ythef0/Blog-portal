@@ -10,11 +10,11 @@ import random
 from django.db.models import Count, Q, Max
 
 # Импортиране на модели и сериализатори
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
-    PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer
+    PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer, EventSerializer
 )
 from django.contrib.auth.models import User
 
@@ -208,4 +208,10 @@ class ContactFormSubmitView(APIView):
 class NotificationListView(generics.ListAPIView):
     queryset = Notification.objects.filter(enabled=True).order_by('-created_at')
     serializer_class = NotificationSerializer
+    permission_classes = [AllowAny]
+
+
+class EventListView(generics.ListAPIView):
+    queryset = Event.objects.filter(published=True).order_by('start_datetime')
+    serializer_class = EventSerializer
     permission_classes = [AllowAny]
