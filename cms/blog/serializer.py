@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event
+from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
@@ -176,3 +176,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TermsOfServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TermsOfService
+        fields = ['content', 'date']

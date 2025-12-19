@@ -27,4 +27,7 @@ urlpatterns = [
 
     # Път за събития
     path('events/', blog_views.EventListView.as_view(), name='event-list'),
+
+    # Път за Условия за ползване
+    path('terms-of-service/', blog_views.TermsOfServiceView.as_view(), name='terms-of-service'),
 ]

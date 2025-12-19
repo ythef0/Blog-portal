@@ -1,7 +1,9 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfUser, Event
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event
 from django.contrib import admin
 #from django.contrib.auth.models import User
 from unfold_markdown.widgets import MarkdownWidget
+import markdown
+from django.utils.safestring import mark_safe
 
 @admin.register(Posts)
 class PostsAdmin(admin.ModelAdmin):
@@ -133,8 +135,8 @@ class ContactSubmissionAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(TermsOfUser)
-class TermsOfUserAdmin(admin.ModelAdmin):
+@admin.register(TermsOfService)
+class TermsOfServiceAdmin(admin.ModelAdmin):
     list_display = ('user', 'content_preview', 'date')
     list_filter = ('date',)
     search_fields = ('user__username', 'content')

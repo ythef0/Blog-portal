@@ -10,11 +10,11 @@ import random
 from django.db.models import Count, Q, Max
 
 # Импортиране на модели и сериализатори
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
-    PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer, EventSerializer
+    PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer, EventSerializer, TermsOfServiceSerializer
 )
 from django.contrib.auth.models import User
 
@@ -215,3 +215,16 @@ class EventListView(generics.ListAPIView):
     queryset = Event.objects.filter(published=True).order_by('start_datetime')
     serializer_class = EventSerializer
     permission_classes = [AllowAny]
+
+
+class TermsOfServiceView(generics.GenericAPIView):
+    serializer_class = TermsOfServiceSerializer
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        # Fetch the latest Terms of Service entry
+        latest_tos = TermsOfService.objects.order_by('-date').first()
+        if latest_tos:
+            serializer = self.get_serializer(latest_tos)
+            return Response(serializer.data)
+        return Response({"detail": "No Terms of Service found."}, status=status.HTTP_404_NOT_FOUND)

@@ -1,7 +1,6 @@
 asgiref==3.11.0
 Django==6.0
 django-cors-headers==4.9.0
-django-daisy==2.0.7
 django-unfold==0.72.0
 django-unfold-markdown==0.1.2
 djangorestframework==3.16.1
