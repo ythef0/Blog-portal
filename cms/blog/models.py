@@ -16,7 +16,7 @@ class Category(models.Model):
 class Posts(models.Model):
     title = models.CharField(max_length=100, blank=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    banner = models.TextField(max_length=100)
+    banner = models.ImageField(upload_to=lambda instance, filename: post_media_upload_path(instance, filename, 'banner'), blank=True, null=True)
     hook = models.TextField(max_length=100)
     content = models.TextField(blank=False, )
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -239,6 +239,32 @@ class TermsOfService(models.Model):
         verbose_name_plural = "Условия за ползване"
 
 
+# Function to define the upload path for post images and banners
+def post_media_upload_path(instance, filename, field_type):
+    # 'instance' can be a Post object (for banner) or a PostImage object (for gallery images)
+    if isinstance(instance, Posts):
+        post_id = instance.pk
+    elif isinstance(instance, PostImage):
+        post_id = instance.post.pk
+    else:
+        # Fallback or error for unexpected instance type
+        post_id = 'unknown' # Or raise an error
+        
+    return f'posts/{post_id}/{field_type}/{filename}'
+
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Posts, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=lambda instance, filename: post_media_upload_path(instance, filename, 'gallery'))
+
+    def __str__(self):
+        return f"Image for post: {self.post.title}"
+
+    class Meta:
+        verbose_name = "Снимка към публикация"
+        verbose_name_plural = "Снимки към публикации"
+
+
 class Event(models.Model):
     title = models.CharField(max_length=255, verbose_name="Заглавие")
     start_datetime = models.DateTimeField(verbose_name="Начална дата и час")
@@ -257,5 +283,6 @@ class Event(models.Model):
         verbose_name = "Събитие"
         verbose_name_plural = "Събития"
         ordering = ['start_datetime']
+
 
 

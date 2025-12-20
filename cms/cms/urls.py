@@ -23,7 +23,6 @@ from django.views.generic.base import RedirectView
 
 
 urlpatterns = [
-    path("/", RedirectView.as_view(url='/admin/', permanent=True)),
     path('admin/', admin.site.urls),
     
     # Включване на всички пътища от приложението 'blog' под префикс 'api/'
@@ -33,3 +32,10 @@ urlpatterns = [
     path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

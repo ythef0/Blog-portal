@@ -1,13 +1,17 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService
+from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService, PostImage
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = ['image']
+
 class PostSerializer(serializers.ModelSerializer):
-    # 1. Дефинирайте ново поле, което ще извика метод
     author_username = serializers.SerializerMethodField()
-    # 2. Може да използвате StringRelatedField за категорията, ако сте я дефинирали като __str__
     category_name = serializers.StringRelatedField(source='category')
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Posts
@@ -23,13 +27,17 @@ class PostSerializer(serializers.ModelSerializer):
             'content',
             'created_at',
             'published',
-            'allowed'
+            'allowed',
+            'images'
         )
 
-    # 3. Дефинирайте метода за получаване на потребителското име
     def get_author_username(self, obj):
-        # Приемаме, че obj.author е инстанция на User модела
         return obj.author.username
+
+    def get_images(self, obj):
+        request = self.context.get('request')
+        images = obj.images.all()
+        return [request.build_absolute_uri(image.image.url) for image in images if image.image]
 
 class RegisterSerializer(serializers.ModelSerializer):
     # Поле за избор на клас (използваме choices, но го правим write_only)

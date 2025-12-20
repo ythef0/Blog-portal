@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'blog',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -160,4 +161,8 @@ CORS_ALLOW_CREDENTIALS = True
 #     'Authorization',
 #     'Content-Type',
 # ]
+
+# Media files (user-uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
