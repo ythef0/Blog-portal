@@ -1,7 +1,10 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, CLASS_CHOICES, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService, PostImage
+from .models import Posts,UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+import requests
+from bs4 import BeautifulSoup
+import re
 
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,14 +43,6 @@ class PostSerializer(serializers.ModelSerializer):
         return [request.build_absolute_uri(image.image.url) for image in images if image.image]
 
 class RegisterSerializer(serializers.ModelSerializer):
-    # Поле за избор на клас (използваме choices, но го правим write_only)
-    class_name = serializers.ChoiceField(
-        choices=CLASS_CHOICES,
-        write_only=True,
-        required=False,
-        error_messages={'invalid_choice': 'Невалиден избор на клас.'}
-    )
-
     # Поле за парола (само за писане и с валидация)
     password = serializers.CharField(
         write_only=True,
@@ -64,7 +59,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # Включваме class_name в списъка fields, въпреки че не е част от User модела
-        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name', 'class_name')
+        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name')
 
         # Правим тези полета задължителни
         extra_kwargs = {
@@ -85,9 +80,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     # Метод за създаване на обекта (User и UserProfile)
     def create(self, validated_data):
-        # 1. Вземаме class_name и го премахваме от validated_data
-        class_name = validated_data.pop('class_name', None)
-
         # 2. Създаваме стандартния User
         user = User.objects.create(
             username=validated_data['username'],
@@ -99,7 +91,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         # 3. Създаваме свързания UserProfile
-        UserProfile.objects.create(user=user, class_name=class_name)
+        UserProfile.objects.create(user=user)
 
         return user
 
@@ -188,3 +180,37 @@ class TermsOfServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = TermsOfService
         fields = ['content', 'date']
+
+class PrivacyPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrivacyPolicy
+        fields = ['content', 'date']
+
+
+class BellSongSuggestionSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    has_voted = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BellSongSuggestion
+        fields = ['id', 'link', 'slot', 'note', 'title', 'status', 'submitted_at', 'user_username', 'votes', 'has_voted']
+        read_only_fields = ['user', 'status', 'submitted_at', 'votes', 'user_username', 'has_voted']
+
+    def get_has_voted(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.voted_by.filter(id=user.id).exists()
+        return False
+
+
+    def validate_link(self, value):
+        # YouTube regex
+        youtube_regex = r'(?:https?://)?(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)/(?:watch\?v=|embed/|v/|)([\w-]{11})(?:\S+)?'
+        # Spotify regex (track or episode)
+        spotify_regex = r'(?:https?://)?(?:www\.)?(?:open\.spotify\.com)/(?:track|episode)/([a-zA-Z0-9]{22})(?:\S+)?'
+
+        if re.match(youtube_regex, value) or re.match(spotify_regex, value):
+            return value
+        raise serializers.ValidationError("Невалиден YouTube или Spotify линк.")
+

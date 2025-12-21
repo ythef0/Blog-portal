@@ -30,4 +30,14 @@ urlpatterns = [
 
     # Път за Условия за ползване
     path('terms-of-service/', blog_views.TermsOfServiceView.as_view(), name='terms-of-service'),
+
+    # Път за Политика за поверителност
+    path('privacy-policy/', blog_views.PrivacyPolicyView.as_view(), name='privacy-policy'),
+
+    # Път за предложения за песни за звънец
+    path('bell-song-suggestions/submit/', blog_views.BellSongSuggestionCreateAPIView.as_view(), name='bell-song-submit'),
+
+    # Bell song voting system URLs
+    path('approved-songs/', blog_views.ApprovedBellSongListView.as_view(), name='approved-songs-list'),
+    path('songs/<int:pk>/vote/', blog_views.BellSongVoteView.as_view(), name='song-vote'),
 ]

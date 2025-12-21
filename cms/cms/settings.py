@@ -162,7 +162,89 @@ CORS_ALLOW_CREDENTIALS = True
 #     'Content-Type',
 # ]
 
-# Media files (user-uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+UNFOLD = {
+    "SIDEBAR": {
+        "navigation": [
+            {
+                "title": "Управление на съдържанието",
+                "items": [
+                    {
+                        "title": "Публикации",
+                        "link": "/admin/blog/posts/",
+                    },
+                    {
+                        "title": "Категории",
+                        "link": "/admin/blog/category/",
+                    },
+                    {
+                        "title": "Снимки към публикации",
+                        "link": "/admin/blog/postimage/",
+                    },
+                    {
+                        "title": "Събития",
+                        "link": "/admin/blog/event/",
+                    },
+                    {
+                        "title": "Известия",
+                        "link": "/admin/blog/notification/",
+                    },
+                ],
+            },
+            {
+                "title": "Ангажираност на потребителите",
+                "items": [
+                    {
+                        "title": "Въпроси за анкети",
+                        "link": "/admin/blog/pollquestion/",
+                    },
+                    {
+                        "title": "Отговори на анкети",
+                        "link": "/admin/blog/pollanswer/",
+                    },
+                    {
+                        "title": "Предложения за песни",
+                        "link": "/admin/blog/bellsongsuggestion/",
+                    },
+                    {
+                        "title": "Коментари",
+                        "link": "/admin/blog/comments/",
+                    },
+                ],
+            },
+            {
+                "title": "Администрация",
+                "items": [
+                    {
+                        "title": "Изпратени контактни формуляри",
+                        "link": "/admin/blog/contactsubmission/",
+                    },
+                    {
+                        "title": "Политики за поверителност",
+                        "link": "/admin/blog/privacypolicy/",
+                    },
+                    {
+                        "title": "Условия за ползване",
+                        "link": "/admin/blog/termsofservice/",
+                    },
+                ],
+            },
+            {
+                "title": "Автентикация и ауториазия",
+                "items": [
+                    {
+                        "title": "Потребители",
+                        "link": "/admin/auth/user/",
+                    },
+                    {
+                        "title": "Групи",
+                        "link": "/admin/auth/group/",
+                    },
+                ],
+            },
+        ],
+    },
+}
 

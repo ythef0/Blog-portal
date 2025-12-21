@@ -3,6 +3,13 @@ from django.db import models
 from django.db.models import BooleanField
 
 
+
+def post_banner_upload_path(instance, filename):
+    return post_media_upload_path(instance, filename, 'banner')
+
+def post_gallery_upload_path(instance, filename):
+    return post_media_upload_path(instance, filename, 'gallery')
+
 class Category(models.Model):
     full_name = models.CharField(max_length=100)
     short_name = models.SlugField(max_length=100, unique=True)
@@ -16,7 +23,7 @@ class Category(models.Model):
 class Posts(models.Model):
     title = models.CharField(max_length=100, blank=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    banner = models.ImageField(upload_to=lambda instance, filename: post_media_upload_path(instance, filename, 'banner'), blank=True, null=True)
+    banner = models.ImageField(upload_to=post_banner_upload_path, blank=True, null=True)
     hook = models.TextField(max_length=100)
     content = models.TextField(blank=False, )
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -47,14 +54,40 @@ class Comments(models.Model):
     def __str__(self):
         return self.content
 
-class BellRequest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    likes = models.IntegerField(default=0)
-    yt_id = models.CharField(max_length=25)
-    approved = models.BooleanField(default=False)
+
+SLOT_CHOICES = (
+    ('start_class', 'Начало на час'),
+    ('end_class', 'Край на час'),
+    ('before_lunch', 'Преди голямо междучасие'),
+    ('after_lunch', 'След голямо междучасие'),
+    ('morning', 'Сутрешен звънец'), # Default
+    ('special', 'Специален повод'),
+)
+
+STATUS_CHOICES = (
+    ('pending', 'Чакащо одобрение'),
+    ('approved', 'Одобрено'),
+    ('rejected', 'Отхвърлено'),
+)
+
+class BellSongSuggestion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Потребител")
+    title = models.CharField(max_length=255, verbose_name="Заглавие на песента")
+    link = models.URLField(max_length=2048, verbose_name="Линк към песента") # Max length for URLs
+    slot = models.CharField(max_length=20, choices=SLOT_CHOICES, default='morning', verbose_name="Кога да звучи")
+    note = models.TextField(blank=True, null=True, verbose_name="Бележка")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name="Статус")
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Изпратено на")
+    voted_by = models.ManyToManyField(User, related_name='voted_songs', blank=True, verbose_name="Гласували потребители")
+    votes = models.IntegerField(default=0, verbose_name="Гласове")
+
+    class Meta:
+        verbose_name = "Предложение за песен за звънец"
+        verbose_name_plural = "Предложения за песни за звънец"
+        ordering = ['-submitted_at']
 
     def __str__(self):
-        return self.yt_id
+        return f"{self.title} ({self.get_status_display()})"
 
 class MemeOfWeek(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -65,58 +98,7 @@ class MemeOfWeek(models.Model):
     def __str__(self):
         return self.location
 
-CLASS_CHOICES = (
-    ('8a', '8 А'),
-    ('8b', '8 Б'),
-    ('8v', '8 В'),
-
-    ('9a', '9 А'),
-    ('9b', '9 Б'),
-    ('9v', '9 В'),
-
-    ('10a', '10 А'),
-    ('10b', '10 Б'),
-    ('10v', '10 В'),
-
-    ('11a', '11 А'),
-    ('11b', '11 Б'),
-    ('11v', '11 В'),
-
-    ('12a', '12 А'),
-    ('12b', '12 Б'),)
-
-TYPE_CHOICES = (
-    ('8a', '8 А'),
-    ('8b', '8 Б'),
-    ('8v', '8 В'),
-
-    ('9a', '9 А'),
-    ('9b', '9 Б'),
-    ('9v', '9 В'),
-
-    ('10a', '10 А'),
-    ('10b', '10 Б'),
-    ('10v', '10 В'),
-
-    ('11a', '11 А'),
-    ('11b', '11 Б'),
-    ('11v', '11 В'),
-
-    ('12a', '12 А'),
-    ('12b', '12 Б'),
-    ('teacher', 'TEACHER'))
-
 class UserProfile(models.Model):
-    # Първият елемент в tuples е стойността, която се запазва в базата данни (напр. '10a')
-    # Вторият елемент е стойността, която се показва на потребителя (напр. '10 А')
-    class_name = models.CharField(
-        max_length=5,  # Максимална дължина на стойността ('10v')
-        choices=CLASS_CHOICES,  # ❗ Използваме choices
-        blank=True,
-        null=True,
-        verbose_name="Клас"
-    )
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -238,6 +220,17 @@ class TermsOfService(models.Model):
         verbose_name = "Условие за ползване"
         verbose_name_plural = "Условия за ползване"
 
+class PrivacyPolicy(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, verbose_name="Автор")
+    content = models.TextField(null=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.content} качено на : {self.user.username}"
+
+    class Meta:
+        verbose_name = "Политика за поверителност"
+        verbose_name_plural = "Политики за поверителност"
 
 # Function to define the upload path for post images and banners
 def post_media_upload_path(instance, filename, field_type):
@@ -255,7 +248,7 @@ def post_media_upload_path(instance, filename, field_type):
 
 class PostImage(models.Model):
     post = models.ForeignKey(Posts, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=lambda instance, filename: post_media_upload_path(instance, filename, 'gallery'))
+    image = models.ImageField(upload_to=post_gallery_upload_path)
 
     def __str__(self):
         return f"Image for post: {self.post.title}"
