@@ -1,0 +1,95 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Начално табло" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="mb-8">
+        <h1 class="text-2xl font-semibold">{% trans "Добре дошли, " %}{{ request.user.username }}!</h1>
+        <p class="text-base-500">
+            {% trans "Използвайте бързите връзки по-долу или менюто отляво за навигация." %}
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Quick Link: Add Post -->
+        <a href="{% url 'admin:blog_posts_add' %}" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-add text-2xl text-primary-500"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Добави публикация" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Създайте нова статия за блога." %}</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Quick Link: Pending Bell Songs -->
+        <a href="{% url 'admin:blog_bellsongsuggestion_changelist' %}?status__exact=pending" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-music_note text-2xl text-warning-500"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Одобри песни" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Прегледайте чакащите предложения." %}</p>
+                </div>
+            </div>
+        </a>
+        
+        <!-- Quick Link: View Comments -->
+        <a href="{% url 'admin:blog_comments_changelist' %}" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-comment text-2xl text-info-500"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Преглед на коментари" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Управлявайте коментарите." %}</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- New Quick Link: Add Event -->
+        <a href="{% url 'admin:blog_event_add' %}" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-event text-2xl text-success-500"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Добави събитие" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Създайте ново събитие в календара." %}</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- New Quick Link: Add Poll -->
+        <a href="{% url 'admin:blog_pollquestion_add' %}" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-poll text-2xl text-primary-500"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Добави анкета" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Създайте нова седмична анкета." %}</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- New Quick Link: Manage Users -->
+        <a href="{% url 'admin:auth_user_changelist' %}" class="block rounded-lg border border-base-200 bg-base-100 p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
+            <div class="flex items-center">
+                <div class="rounded-full bg-base-200 p-3">
+                    <span class="icon-group text-2xl text-base-600"></span>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold">{% trans "Управление на потребители" %}</h3>
+                    <p class="text-sm text-base-500">{% trans "Прегледайте и управлявайте потребителите." %}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -11,12 +11,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from django.templatetags.static import static
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "staticfiles_collected"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -34,8 +35,6 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'unfold',
-    #'daisy',
-    #'jazzmin',
     'unfold_markdown',
     'corsheaders',
     'django.contrib.admin',
@@ -148,6 +147,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -166,6 +169,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 UNFOLD = {
+    "SITE_TITLE": "Админ панел - ПГКНМА",
+    "SITE_HEADER": "CMS ПГКНМА Блог",
+    "SITE_SUBHEADER": "Система за управление на съдържанието",
+    "SITE_ICON": lambda request: static("images/logo.png"),
+    "SITE_SYMBOL": "school", # A generic symbol from Google Material Icons
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": False,
+    "BORDER_RADIUS": "6px",
     "SIDEBAR": {
         "navigation": [
             {
