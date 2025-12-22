@@ -30,7 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
+DJANGO_ADMIN_LOGS_ENABLED = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'blog',
     'django_cleanup.apps.CleanupConfig',
+    'django_admin_logs',
 ]
 
 MIDDLEWARE = [
@@ -240,6 +241,10 @@ UNFOLD = {
                     {
                         "title": "Условия за ползване",
                         "link": "/admin/blog/termsofservice/",
+                    },
+                    {
+                        "title": "Журнал на действията",
+                        "link": "/admin/admin/logentry/",
                     },
                 ],
             },
