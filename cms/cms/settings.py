@@ -222,6 +222,10 @@ UNFOLD = {
                         "link": "/admin/blog/bellsongsuggestion/",
                     },
                     {
+                        "title": "Меме на седмицата",
+                        "link": "/admin/blog/memeofweek/",
+                    },
+                    {
                         "title": "Коментари",
                         "link": "/admin/blog/comments/",
                     },

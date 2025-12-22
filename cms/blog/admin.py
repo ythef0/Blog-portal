@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 import markdown
@@ -217,3 +217,16 @@ class PostImageAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src="{obj.image.url}" style="max-width: 150px; max-height: 150px;" />')
         return "Няма изображение"
     image_preview.short_description = "Преглед на изображението"
+
+@admin.register(MemeOfWeek)
+class MemeOfWeekAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'image_preview', 'is_approved', 'created_at')
+    list_filter = ('is_approved', 'created_at')
+    search_fields = ('title', 'user__username')
+    readonly_fields = ('user', 'created_at', 'image_preview')
+
+    def image_preview(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" style="max-width: 150px; max-height: 150px;" />')
+        return "Няма изображение"
+    image_preview.short_description = "Изображение"

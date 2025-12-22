@@ -6,6 +6,7 @@ from . import views as blog_views
 router = DefaultRouter()
 router.register('posts', blog_views.PostViewSet, basename='posts')
 router.register('poll', blog_views.WeeklyPollViewSet, basename='poll')
+router.register('memes', blog_views.MemeOfWeekViewSet, basename='memes')
 
 # URL пътища
 urlpatterns = [
@@ -40,4 +41,7 @@ urlpatterns = [
     # Bell song voting system URLs
     path('approved-songs/', blog_views.ApprovedBellSongListView.as_view(), name='approved-songs-list'),
     path('songs/<int:pk>/vote/', blog_views.BellSongVoteView.as_view(), name='song-vote'),
+
+    # Meme voting system URL
+    path('memes/<int:pk>/vote/', blog_views.MemeVoteView.as_view(), name='meme-vote'),
 ]

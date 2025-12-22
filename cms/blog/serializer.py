@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Posts,UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy
+from .models import Posts, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, \
+    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 import requests
@@ -214,3 +215,30 @@ class BellSongSuggestionSerializer(serializers.ModelSerializer):
             return value
         raise serializers.ValidationError("Невалиден YouTube или Spotify линк.")
 
+
+class MemeOfWeekSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    image_url = serializers.SerializerMethodField()
+    has_voted = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MemeOfWeek
+        fields = ['id', 'title', 'image', 'image_url', 'user_username', 'created_at', 'is_approved', 'votes', 'has_voted']
+        read_only_fields = ['id', 'user_username', 'created_at', 'image_url', 'is_approved', 'votes', 'has_voted']
+        # 'image' is write-only, the URL is for reading
+        extra_kwargs = {
+            'image': {'write_only': True, 'required': True},
+            'title': {'required': True}
+        }
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and hasattr(obj.image, 'url'):
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+    def get_has_voted(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.voted_by.filter(id=user.id).exists()
+        return False

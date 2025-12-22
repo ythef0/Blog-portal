@@ -8,19 +8,38 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Max
 from django.contrib.auth.models import User
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
-    PrivacyPolicySerializer
+    PrivacyPolicySerializer, MemeOfWeekSerializer
 )
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Posts.objects.filter(published=True, allowed=True).order_by('-created_at')
     serializer_class = PostSerializer
     http_method_names = ['get', 'head', 'options']
+
+class MemeOfWeekViewSet(viewsets.ModelViewSet):
+    serializer_class = MemeOfWeekSerializer
+    http_method_names = ['get', 'post', 'head', 'options']
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return MemeOfWeek.objects.filter(is_approved=True).order_by('-votes', '-created_at')
+        return MemeOfWeek.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
@@ -61,6 +80,27 @@ class BellSongVoteView(APIView):
         # Pass context to serializer to access the request
         serializer = BellSongSuggestionSerializer(song, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class MemeVoteView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, pk):
+        meme = get_object_or_404(MemeOfWeek, pk=pk)
+        if not meme.is_approved:
+            return Response({'detail': 'You can only vote on approved memes.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user has already voted
+        if request.user in meme.voted_by.all():
+            return Response({'detail': 'You have already voted for this meme.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Add user to voters and increment vote count
+        meme.voted_by.add(request.user)
+        meme.votes += 1
+        meme.save(update_fields=['votes'])
+
+        # Pass context to serializer to access the request
+        serializer = MemeOfWeekSerializer(meme, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer

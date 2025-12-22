@@ -10,6 +10,9 @@ def post_banner_upload_path(instance, filename):
 def post_gallery_upload_path(instance, filename):
     return post_media_upload_path(instance, filename, 'gallery')
 
+def meme_upload_path(instance, filename):
+    return f'memes/{instance.user.username}/{filename}'
+
 class Category(models.Model):
     full_name = models.CharField(max_length=100)
     short_name = models.SlugField(max_length=100, unique=True)
@@ -90,13 +93,23 @@ class BellSongSuggestion(models.Model):
         return f"{self.title} ({self.get_status_display()})"
 
 class MemeOfWeek(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.TextField(blank=False)
-    likes = models.IntegerField(default=0)
-    approved = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Потребител")
+    title = models.CharField(max_length=100, blank=True, null=True, verbose_name="Заглавие")
+    image = models.ImageField(upload_to=meme_upload_path, blank=True, null=True, verbose_name="Изображение")
+    is_approved = models.BooleanField(default=False, verbose_name="Одобрено")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата на качване", null=True)
+    voted_by = models.ManyToManyField(User, related_name='voted_memes', blank=True, verbose_name="Гласували потребители")
+    votes = models.IntegerField(default=0, verbose_name="Гласове")
+
+    class Meta:
+        verbose_name = "Меме на седмицата"
+        verbose_name_plural = "Мемета на седмицата"
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.location
+        if self.title:
+            return self.title
+        return f"Meme by {self.user.username}"
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
