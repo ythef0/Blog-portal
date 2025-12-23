@@ -33,7 +33,11 @@ ALLOWED_HOSTS = ['*']
 DJANGO_ADMIN_LOGS_ENABLED = True
 # Application definition
 
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+
 INSTALLED_APPS = [
+    'filebrowser',
     'unfold',
     'unfold_markdown',
     'corsheaders',
@@ -49,6 +53,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     'django_admin_logs',
 ]
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -170,6 +175,19 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 UNFOLD = {
+    "SITE_DROPDOWN": [
+        {
+            "icon": "diamond",
+            "title": ("Начална старница"),
+            "link": "http://127.0.0.1:8080/",
+        },
+        {
+            "icon": "folder",
+            "title": ("Официален сайт"),
+            "link": "https://pgknma.com",
+        }
+    ],
+
     "SITE_TITLE": "Админ панел - ПГКНМА",
     "SITE_HEADER": "CMS ПГКНМА Блог",
     "SITE_SUBHEADER": "Система за управление на съдържанието",
@@ -181,6 +199,15 @@ UNFOLD = {
     "BORDER_RADIUS": "6px",
     "SIDEBAR": {
         "navigation": [
+            {
+
+                "items": [
+                    {
+                        "title": "Начало",
+                        "link": "/admin",
+                    },
+                ],
+            },
             {
                 "title": "Управление на съдържанието",
                 "items": [

@@ -20,10 +20,11 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,)
 from django.views.generic.base import RedirectView
-
+from filebrowser.sites import site
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin/files/', site.urls),
     
     # Включване на всички пътища от приложението 'blog' под префикс 'api/'
     path('api/', include('blog.urls')),
