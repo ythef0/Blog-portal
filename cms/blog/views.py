@@ -47,6 +47,9 @@ class MemeOfWeekViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def perform_create(self, serializer):
+        site_settings, created = SiteSettings.objects.get_or_create(pk=1)
+        if not site_settings.enable_meme_of_the_week:
+            raise PermissionDenied("Feature 'Meme of the Week' is currently disabled.")
         serializer.save(user=self.request.user)
 
 class RegisterView(generics.CreateAPIView):
@@ -59,6 +62,9 @@ class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     serializer_class = BellSongSuggestionSerializer
     permission_classes = [IsAuthenticated]
     def perform_create(self, serializer):
+        site_settings, created = SiteSettings.objects.get_or_create(pk=1)
+        if not site_settings.enable_bell_suggestions:
+            raise PermissionDenied("Feature 'Bell Suggestions' is currently disabled.")
         serializer.save(user=self.request.user, status='pending')
 
 class ApprovedBellSongListView(generics.ListAPIView):
@@ -141,6 +147,10 @@ class WeeklyPollViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def status(self, request):
+        site_settings, created = SiteSettings.objects.get_or_create(pk=1)
+        if not site_settings.enable_weekly_poll:
+            return Response({"detail": "Polls feature is currently disabled."}, status=status.HTTP_404_NOT_FOUND)
+
         user = request.user
         now = timezone.now()
         
@@ -175,6 +185,10 @@ class WeeklyPollViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def submit(self, request):
+        site_settings, created = SiteSettings.objects.get_or_create(pk=1)
+        if not site_settings.enable_weekly_poll:
+            return Response({"detail": "Polls feature is currently disabled."}, status=status.HTTP_403_FORBIDDEN)
+
         user = request.user
         now = timezone.now()
 

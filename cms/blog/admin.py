@@ -1,9 +1,11 @@
 from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+from django.db import models
 import markdown
 import re # Import regex module
 from unfold_markdown.widgets import MarkdownWidget
+from unfold.widgets import UnfoldBooleanSwitchWidget
 
 class PostImageInline(admin.TabularInline):
     model = PostImage
@@ -251,7 +253,7 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'maintenance_mode')
+    list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week')
 
     def __str__(self):
         return "Настройки на сайта"
@@ -268,3 +270,8 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if isinstance(db_field, models.BooleanField):
+            kwargs["widget"] = UnfoldBooleanSwitchWidget()
+        return super().formfield_for_dbfield(db_field, request, **kwargs)

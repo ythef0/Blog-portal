@@ -170,6 +170,18 @@ MEDIA_URL = '/files/'
 MEDIA_ROOT = BASE_DIR / 'files'
 
 UNFOLD = {
+    "SITE_DROPDOWN": [
+            {
+                "icon": "diamond",
+                "title": ("Начална страница"),
+                "link": "http://127.0.0.1:8080/",
+            },
+            {
+                "icon": "folder",
+                "title": ("Официален сайт"),
+                "link": "https://pgknma.com/",
+            }
+        ],
     "SITE_TITLE": "Админ панел - ПГКНМА",
     "SITE_HEADER": "CMS ПГКНМА Блог",
     "SITE_SUBHEADER": "Система за управление на съдържанието",

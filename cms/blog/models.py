@@ -291,6 +291,9 @@ class Event(models.Model):
 
 class SiteSettings(models.Model):
     maintenance_mode = models.BooleanField(default=False, verbose_name="Режим на поддръжка")
+    enable_bell_suggestions = models.BooleanField(default=True, verbose_name="Активирани 'Предложения за песни'")
+    enable_weekly_poll = models.BooleanField(default=True, verbose_name="Активирана 'Седмична анкета'")
+    enable_meme_of_the_week = models.BooleanField(default=True, verbose_name="Активирано 'Меме на седмицата'")
 
     class Meta:
         verbose_name = "Настройки на сайта"
