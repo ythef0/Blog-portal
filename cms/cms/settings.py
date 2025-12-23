@@ -33,11 +33,8 @@ ALLOWED_HOSTS = ['*']
 DJANGO_ADMIN_LOGS_ENABLED = True
 # Application definition
 
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
 
 INSTALLED_APPS = [
-    'filebrowser',
     'unfold',
     'unfold_markdown',
     'corsheaders',
