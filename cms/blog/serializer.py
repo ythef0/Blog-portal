@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Posts, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, \
-    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
+    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 import requests
@@ -248,3 +248,9 @@ class ConsentRecordSerializer(serializers.ModelSerializer):
         model = Cookie.ConsentRecord
         fields = ['consent_status', 'policy_version']
         read_only_fields = ['id', 'timestamp', 'user', 'ip_address']
+
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteSettings
+        fields = ['maintenance_mode']
+

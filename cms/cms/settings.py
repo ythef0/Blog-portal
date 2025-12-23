@@ -166,8 +166,8 @@ CORS_ALLOW_CREDENTIALS = True
 #     'Content-Type',
 # ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/files/'
+MEDIA_ROOT = BASE_DIR / 'files'
 
 UNFOLD = {
     "SITE_TITLE": "Админ панел - ПГКНМА",
@@ -234,6 +234,10 @@ UNFOLD = {
             {
                 "title": "Администрация",
                 "items": [
+                    {
+                        "title": "Настройки на сайта",
+                        "link": "/admin/blog/sitesettings/",
+                    },
                     {
                         "title": "Изпратени контактни формуляри",
                         "link": "/admin/blog/contactsubmission/",

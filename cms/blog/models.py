@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import BooleanField
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 
@@ -288,5 +289,16 @@ class Event(models.Model):
         verbose_name_plural = "Събития"
         ordering = ['start_datetime']
 
+class SiteSettings(models.Model):
+    maintenance_mode = models.BooleanField(default=False, verbose_name="Режим на поддръжка")
+
+    class Meta:
+        verbose_name = "Настройки на сайта"
+        verbose_name_plural = "Настройки на сайта"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and SiteSettings.objects.exists():
+            raise ValidationError('Може да съществува само един обект с настройки на сайта.')
+        return super(SiteSettings, self).save(*args, **kwargs)
 
 

@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 import markdown
@@ -248,3 +248,23 @@ class ConsentRecordAdmin(admin.ModelAdmin):
     def user_display(self, obj):
         return obj.user.username if obj.user else "Анонимен"
     user_display.short_description = "Потребител"
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'maintenance_mode')
+
+    def __str__(self):
+        return "Настройки на сайта"
+
+    def changelist_view(self, request, extra_context=None):
+        from django.http import HttpResponseRedirect
+        from django.urls import reverse
+
+        obj, created = SiteSettings.objects.get_or_create(pk=1)
+        return HttpResponseRedirect(reverse('admin:blog_sitesettings_change', args=(obj.pk,)))
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

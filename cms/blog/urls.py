@@ -38,6 +38,9 @@ urlpatterns = [
     # Път за записване на съгласие за бисквитки
     path('consent/', blog_views.ConsentRecordCreateView.as_view(), name='record-consent'),
 
+    # Път за статус на сайта (режим поддръжка)
+    path('site-status/', blog_views.SiteStatusView.as_view(), name='site-status'),
+
     # Път за предложения за песни за звънец
     path('bell-song-suggestions/submit/', blog_views.BellSongSuggestionCreateAPIView.as_view(), name='bell-song-submit'),
 

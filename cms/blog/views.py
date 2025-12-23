@@ -8,13 +8,13 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Max
 from django.contrib.auth.models import User
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
-    PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer
+    PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer, SiteSettingsSerializer
 )
 
 def get_client_ip(request):
@@ -275,4 +275,12 @@ class ConsentRecordCreateView(generics.CreateAPIView):
         user = self.request.user if self.request.user.is_authenticated else None
         ip_address = get_client_ip(self.request)
         serializer.save(user=user, ip_address=ip_address)
+
+class SiteStatusView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = SiteSettingsSerializer
+
+    def get_object(self):
+        obj, created = SiteSettings.objects.get_or_create(pk=1)
+        return obj
 
