@@ -8,14 +8,22 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Max
 from django.contrib.auth.models import User
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
-    PrivacyPolicySerializer, MemeOfWeekSerializer
+    PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer
 )
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Posts.objects.filter(published=True, allowed=True).order_by('-created_at')
@@ -122,82 +130,90 @@ class AddCommentAPIView(APIView):
             return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def get_next_sunday_deadline():
-    now = timezone.now()
-    days_until_sunday = (6 - now.weekday() + 7) % 7
-    deadline = (now + timedelta(days=days_until_sunday)).replace(hour=23, minute=59, second=59, microsecond=0)
-    if deadline <= now:
-        deadline += timedelta(weeks=1)
-    return deadline
-
 class WeeklyPollViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     def get_serializer_class(self):
         if self.action == 'submit':
             return PollAnswerSerializer
-        if self.action == 'statistics':
+        elif self.action == 'statistics':
             return PollStatisticsSerializer
         return UserPollStatusSerializer
 
     @action(detail=False, methods=['get'])
     def status(self, request):
         user = request.user
-        today = timezone.now().date()
-        start_of_week = today - timedelta(days=today.weekday())
-        latest_answer = PollAnswer.objects.filter(user=user, created_at__gte=start_of_week).order_by('-created_at').first()
+        now = timezone.now()
+        
+        active_question = PollQuestion.objects.filter(start_date__lte=now, end_date__gte=now).first()
+
+        if not active_question:
+            return Response({"detail": "No active poll questions available at this time."}, status=status.HTTP_404_NOT_FOUND)
+
+        latest_answer = PollAnswer.objects.filter(user=user, question=active_question).first()
+
         if latest_answer:
-            deadline = get_next_sunday_deadline()
-            correct_option = PollOption.objects.filter(question=latest_answer.question, is_correct=True).first()
+            correct_option = PollOption.objects.filter(question=active_question, is_correct=True).first()
             data = {
                 'is_locked': True,
-                'unlocks_at': deadline,
-                'question': PollQuestionSerializer(latest_answer.question).data,
+                'unlocks_at': active_question.end_date,
+                'question': PollQuestionSerializer(active_question).data,
                 'last_result': {
-                    'questionId': latest_answer.question.id,
+                    'questionId': active_question.id,
                     'selected': latest_answer.selected_option.key,
                     'correct': correct_option.key if correct_option else None
                 }
             }
             return Response(UserPollStatusSerializer(data).data)
-        newest_question = PollQuestion.objects.filter(is_active=True).order_by('-created_at').first()
-        if not newest_question:
-            return Response({"detail": "No active poll questions available."}, status=status.HTTP_404_NOT_FOUND)
-        data = {
-            'is_locked': False,
-            'unlocks_at': None,
-            'question': PollQuestionSerializer(newest_question).data,
-            'last_result': None
-        }
-        return Response(UserPollStatusSerializer(data).data)
+        else:
+            data = {
+                'is_locked': False,
+                'unlocks_at': None,
+                'question': PollQuestionSerializer(active_question).data,
+                'last_result': None
+            }
+            return Response(UserPollStatusSerializer(data).data)
 
     @action(detail=False, methods=['post'])
     def submit(self, request):
         user = request.user
-        today = timezone.now().date()
-        start_of_week = today - timedelta(days=today.weekday())
-        if PollAnswer.objects.filter(user=user, created_at__gte=start_of_week).exists():
-            return Response({"detail": "You have already answered this week's poll."}, status=status.HTTP_403_FORBIDDEN)
+        now = timezone.now()
+
         serializer = PollAnswerSerializer(data=request.data)
-        if serializer.is_valid():
-            question = serializer.validated_data['question']
-            selected_option = serializer.validated_data['selected_option']
-            if selected_option.question != question:
-                return Response({"detail": "The selected option does not belong to this question."}, status=status.HTTP_400_BAD_REQUEST)
-            PollAnswer.objects.create(user=user, question=question, selected_option=selected_option)
-            correct_option = PollOption.objects.filter(question=question, is_correct=True).first()
-            deadline = get_next_sunday_deadline()
-            data = {
-                'is_locked': True,
-                'unlocks_at': deadline,
-                'question': PollQuestionSerializer(question).data,
-                'last_result': {
-                    'questionId': question.id,
-                    'selected': selected_option.key,
-                    'correct': correct_option.key if correct_option else None
-                }
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        question = serializer.validated_data['question']
+        selected_option = serializer.validated_data['selected_option']
+        
+        active_question = PollQuestion.objects.filter(
+            id=question.id, 
+            start_date__lte=now, 
+            end_date__gte=now
+        ).first()
+
+        if not active_question:
+            return Response({"detail": "This poll is not currently active."}, status=status.HTTP_403_FORBIDDEN)
+
+        if selected_option.question != active_question:
+            return Response({"detail": "The selected option does not belong to this question."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if PollAnswer.objects.filter(user=user, question=active_question).exists():
+            return Response({"detail": "You have already answered this poll."}, status=status.HTTP_403_FORBIDDEN)
+        
+        PollAnswer.objects.create(user=user, question=active_question, selected_option=selected_option)
+
+        correct_option = PollOption.objects.filter(question=active_question, is_correct=True).first()
+        data = {
+            'is_locked': True,
+            'unlocks_at': active_question.end_date,
+            'question': PollQuestionSerializer(active_question).data,
+            'last_result': {
+                'questionId': active_question.id,
+                'selected': selected_option.key,
+                'correct': correct_option.key if correct_option else None
             }
-            return Response(UserPollStatusSerializer(data).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        }
+        return Response(UserPollStatusSerializer(data).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def statistics(self, request):
@@ -249,3 +265,14 @@ class PrivacyPolicyView(generics.GenericAPIView):
         if pp:
             return Response(self.get_serializer(pp).data)
         return Response({"detail": "No Privacy Policy found."}, status=status.HTTP_404_NOT_FOUND)
+
+class ConsentRecordCreateView(generics.CreateAPIView):
+    queryset = Cookie.ConsentRecord.objects.all()
+    serializer_class = ConsentRecordSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        ip_address = get_client_ip(self.request)
+        serializer.save(user=user, ip_address=ip_address)
+

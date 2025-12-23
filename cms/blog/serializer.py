@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Posts, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, \
-    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
+    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 import requests
@@ -242,3 +242,9 @@ class MemeOfWeekSerializer(serializers.ModelSerializer):
         if user.is_authenticated:
             return obj.voted_by.filter(id=user.id).exists()
         return False
+
+class ConsentRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cookie.ConsentRecord
+        fields = ['consent_status', 'policy_version']
+        read_only_fields = ['id', 'timestamp', 'user', 'ip_address']

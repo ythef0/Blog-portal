@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import BooleanField
+from django.utils import timezone
 
 
 
@@ -135,11 +136,7 @@ class Cookie(models.Model):
 
         # Доказателство
         timestamp = models.DateTimeField(auto_now_add=True)
-        policy_version = models.CharField(max_length=10, default='v1.0')  # Трябва да се променя ръчно
-
-        # Опционални (за бъдещето)
-        analytical_accepted = models.BooleanField(default=False)
-        marketing_accepted = models.BooleanField(default=False)
+        policy_version = models.CharField(max_length=50, default='v1.0')  # Трябва да се променя ръчно
 
         def __str__(self):
             return f"Consent: {self.consent_status} at {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
@@ -149,7 +146,8 @@ class PollQuestion(models.Model):
     title = models.CharField(max_length=255, verbose_name="Заглавие")
     subtitle = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подзаглавие")
     code = models.TextField(verbose_name="Код")
-    is_active = models.BooleanField(default=True, verbose_name="Активен")
+    start_date = models.DateTimeField(verbose_name="Начална дата", default=timezone.now)
+    end_date = models.DateTimeField(verbose_name="Крайна дата", default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създаден на")
 
     def __str__(self):
@@ -158,7 +156,7 @@ class PollQuestion(models.Model):
     class Meta:
         verbose_name = "Въпрос за анкета"
         verbose_name_plural = "Въпроси за анкети"
-        ordering = ['-created_at']
+        ordering = ['-start_date']
 
 
 class PollOption(models.Model):

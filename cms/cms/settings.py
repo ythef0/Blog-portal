@@ -247,13 +247,17 @@ UNFOLD = {
                         "link": "/admin/blog/termsofservice/",
                     },
                     {
+                        "title": "Записи на съгласие за бисквитки",
+                        "link": "/admin/blog/consentrecord/",
+                    },
+                    {
                         "title": "Журнал на действията",
                         "link": "/admin/admin/logentry/",
                     },
                 ],
             },
             {
-                "title": "Автентикация и ауториазия",
+                "title": "Аутентикация и оторизация ",
                 "items": [
                     {
                         "title": "Потребители",

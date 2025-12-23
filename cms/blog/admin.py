@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 import markdown
@@ -71,8 +71,8 @@ class PollOptionInline(admin.TabularInline):
 
 @admin.register(PollQuestion)
 class PollQuestionAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_active', 'created_at')
-    list_filter = ('is_active',)
+    list_display = ('title', 'start_date', 'end_date', 'created_at')
+    list_filter = ('start_date', 'end_date')
     search_fields = ('title', 'subtitle', 'code')
     inlines = [PollOptionInline]
 
@@ -220,13 +220,31 @@ class PostImageAdmin(admin.ModelAdmin):
 
 @admin.register(MemeOfWeek)
 class MemeOfWeekAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'image_preview', 'is_approved', 'created_at')
+    list_display = ('title', 'user', 'image_preview', 'is_approved', 'votes', 'created_at')
     list_filter = ('is_approved', 'created_at')
     search_fields = ('title', 'user__username')
     readonly_fields = ('user', 'created_at', 'image_preview')
+    exclude = ('voted_by',)
 
     def image_preview(self, obj):
         if obj.image:
             return mark_safe(f'<img src="{obj.image.url}" style="max-width: 150px; max-height: 150px;" />')
         return "Няма изображение"
     image_preview.short_description = "Изображение"
+
+@admin.register(Cookie.ConsentRecord)
+class ConsentRecordAdmin(admin.ModelAdmin):
+    list_display = ('user_display', 'ip_address', 'consent_status', 'timestamp', 'policy_version')
+    list_filter = ('consent_status', 'policy_version')
+    search_fields = ('ip_address', 'user__username')
+    readonly_fields = ('user', 'ip_address', 'consent_status', 'timestamp', 'policy_version')
+
+    def has_add_permission(self, request):
+        return False # Records are created via API, not admin
+
+    def has_change_permission(self, request, obj=None):
+        return False # Records should not be changeable
+
+    def user_display(self, obj):
+        return obj.user.username if obj.user else "Анонимен"
+    user_display.short_description = "Потребител"
