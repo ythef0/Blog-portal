@@ -166,7 +166,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
             data = {
                 'is_locked': True,
                 'unlocks_at': active_question.end_date,
-                'question': PollQuestionSerializer(active_question).data,
+                'question': active_question,
                 'last_result': {
                     'questionId': active_question.id,
                     'selected': latest_answer.selected_option.key,
@@ -178,7 +178,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
             data = {
                 'is_locked': False,
                 'unlocks_at': None,
-                'question': PollQuestionSerializer(active_question).data,
+                'question': active_question,
                 'last_result': None
             }
             return Response(UserPollStatusSerializer(data).data)
@@ -220,7 +220,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
         data = {
             'is_locked': True,
             'unlocks_at': active_question.end_date,
-            'question': PollQuestionSerializer(active_question).data,
+            'question': active_question,
             'last_result': {
                 'questionId': active_question.id,
                 'selected': selected_option.key,

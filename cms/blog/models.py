@@ -208,7 +208,7 @@ class ContactSubmission(models.Model):
 
 
 class Notification(models.Model):
-    text = models.CharField(max_length=255, verbose_name="Текст на известието")
+    text = models.TextField(verbose_name="Текст на известието")
     enabled = models.BooleanField(default=True, verbose_name="Активирано")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създадено на")
 

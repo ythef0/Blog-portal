@@ -6,6 +6,8 @@ from django.contrib.auth.password_validation import validate_password
 import requests
 from bs4 import BeautifulSoup
 import re
+import markdown # New import
+from django.utils.safestring import mark_safe # New import
 
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -166,9 +168,14 @@ class ContactSubmissionSerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    html_text = serializers.SerializerMethodField()
     class Meta:
         model = Notification
-        fields = ['id', 'text', 'enabled', 'created_at']
+        fields = ['id', 'text', 'enabled', 'created_at', 'html_text']
+        read_only_fields = ['html_text']
+
+    def get_html_text(self, obj):
+        return mark_safe(markdown.markdown(obj.text))
 
 
 class EventSerializer(serializers.ModelSerializer):

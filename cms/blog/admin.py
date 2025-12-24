@@ -69,7 +69,8 @@ class PollOptionInline(admin.TabularInline):
     extra = 4
     max_num = 4
     verbose_name = "Опция"
-    verbose_name_plural = "Опции"
+    verbose_name_plural = "Опции (Системата автоматично ще запази само един маркиран като 'верен' отговор и максимум до 4 отговора на анкета!)"
+    exclude = ('key',)
 
 @admin.register(PollQuestion)
 class PollQuestionAdmin(admin.ModelAdmin):
@@ -77,6 +78,25 @@ class PollQuestionAdmin(admin.ModelAdmin):
     list_filter = ('start_date', 'end_date')
     search_fields = ('title', 'subtitle', 'code')
     inlines = [PollOptionInline]
+
+    def save_formset(self, request, form, formset, change):
+        super().save_formset(request, form, formset, change)
+        
+        saved_options = form.instance.options.all().order_by('id')
+        letters = ['a', 'b', 'c', 'd']
+        
+        for i, option in enumerate(saved_options):
+            if i < len(letters):
+                new_key = letters[i]
+                if option.key != new_key:
+                    option.key = new_key
+                    option.save()
+
+        # Enforce single correct answer
+        correct_options = form.instance.options.filter(is_correct=True)
+        if correct_options.count() > 1:
+            last_correct_option = correct_options.order_by('-id').first()
+            form.instance.options.exclude(pk=last_correct_option.pk).update(is_correct=False)
 
 @admin.register(PollAnswer)
 class PollAnswerAdmin(admin.ModelAdmin):
@@ -136,6 +156,11 @@ class NotificationAdmin(admin.ModelAdmin):
     list_filter = ('enabled', 'created_at')
     search_fields = ('text',)
     readonly_fields = ('created_at',)
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == 'text':
+            kwargs['widget'] = MarkdownWidget(attrs={'rows': 3})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
 @admin.register(ContactSubmission)
 class ContactSubmissionAdmin(admin.ModelAdmin):
