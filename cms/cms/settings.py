@@ -194,6 +194,14 @@ UNFOLD = {
     "SIDEBAR": {
         "navigation": [
             {
+                "items":[
+                    {
+                        "title": "Начало",
+                        "link": "/admin",
+                    }
+                ],
+            },
+            {
                 "title": "Управление на съдържанието",
                 "items": [
                     {
