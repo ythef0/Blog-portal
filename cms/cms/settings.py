@@ -198,6 +198,7 @@ UNFOLD = {
                     {
                         "title": "Начало",
                         "link": "/admin",
+                        "icon": "home",
                     }
                 ],
             },
@@ -207,22 +208,27 @@ UNFOLD = {
                     {
                         "title": "Публикации",
                         "link": "/admin/blog/posts/",
+                        "icon": "article",
                     },
                     {
                         "title": "Категории",
                         "link": "/admin/blog/category/",
+                        "icon": "label",
                     },
                     {
                         "title": "Снимки към публикации",
                         "link": "/admin/blog/postimage/",
+                        "icon": "image",
                     },
                     {
                         "title": "Събития",
                         "link": "/admin/blog/event/",
+                        "icon": "event",
                     },
                     {
                         "title": "Известия",
                         "link": "/admin/blog/notification/",
+                        "icon": "notifications",
                     },
                 ],
             },
@@ -232,22 +238,27 @@ UNFOLD = {
                     {
                         "title": "Въпроси за анкети",
                         "link": "/admin/blog/pollquestion/",
+                        "icon": "poll",
                     },
                     {
                         "title": "Отговори на анкети",
                         "link": "/admin/blog/pollanswer/",
+                        "icon": "how_to_vote",
                     },
                     {
                         "title": "Предложения за песни",
                         "link": "/admin/blog/bellsongsuggestion/",
+                        "icon": "music_note",
                     },
                     {
                         "title": "Меме на седмицата",
                         "link": "/admin/blog/memeofweek/",
+                        "icon": "sentiment_very_satisfied",
                     },
                     {
                         "title": "Коментари",
                         "link": "/admin/blog/comments/",
+                        "icon": "comment",
                     },
                 ],
             },
@@ -257,26 +268,32 @@ UNFOLD = {
                     {
                         "title": "Настройки на сайта",
                         "link": "/admin/blog/sitesettings/",
+                        "icon": "settings",
                     },
                     {
                         "title": "Изпратени контактни формуляри",
                         "link": "/admin/blog/contactsubmission/",
+                        "icon": "mail",
                     },
                     {
                         "title": "Политики за поверителност",
                         "link": "/admin/blog/privacypolicy/",
+                        "icon": "privacy_tip",
                     },
                     {
                         "title": "Условия за ползване",
                         "link": "/admin/blog/termsofservice/",
+                        "icon": "gavel",
                     },
                     {
                         "title": "Записи на съгласие за бисквитки",
                         "link": "/admin/blog/consentrecord/",
+                        "icon": "cookie",
                     },
                     {
                         "title": "Журнал на действията",
                         "link": "/admin/admin/logentry/",
+                        "icon": "history",
                     },
                 ],
             },
@@ -286,10 +303,12 @@ UNFOLD = {
                     {
                         "title": "Потребители",
                         "link": "/admin/auth/user/",
+                        "icon": "person",
                     },
                     {
                         "title": "Групи",
                         "link": "/admin/auth/group/",
+                        "icon": "groups",
                     },
                 ],
             },
