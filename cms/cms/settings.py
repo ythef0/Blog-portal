@@ -199,10 +199,16 @@ UNFOLD = {
                         "title": "Начало",
                         "link": "/admin",
                         "icon": "home",
-                    }
+                    },
+                    {
+                        "title": "Изпратени контактни формуляри",
+                        "link": "/admin/blog/contactsubmission/",
+                        "icon": "mail",
+                    },
                 ],
             },
             {
+                "separator": True,
                 "title": "Управление на съдържанието",
                 "items": [
                     {
@@ -233,6 +239,8 @@ UNFOLD = {
                 ],
             },
             {
+
+                "separator": True,
                 "title": "Ангажираност на потребителите",
                 "items": [
                     {
@@ -263,17 +271,14 @@ UNFOLD = {
                 ],
             },
             {
+                "separator": True,
+                "collapsible": True,
                 "title": "Администрация",
                 "items": [
                     {
                         "title": "Настройки на сайта",
                         "link": "/admin/blog/sitesettings/",
                         "icon": "settings",
-                    },
-                    {
-                        "title": "Изпратени контактни формуляри",
-                        "link": "/admin/blog/contactsubmission/",
-                        "icon": "mail",
                     },
                     {
                         "title": "Политики за поверителност",
@@ -298,6 +303,7 @@ UNFOLD = {
                 ],
             },
             {
+                "collapsible": True,
                 "title": "Аутентикация и оторизация ",
                 "items": [
                     {
