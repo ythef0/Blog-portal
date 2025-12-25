@@ -2,10 +2,14 @@ from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, Po
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.db import models
+from django import forms
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 import markdown
 import re # Import regex module
 from unfold_markdown.widgets import MarkdownWidget
 from unfold.widgets import UnfoldBooleanSwitchWidget
+from .forms import MemeSelectionForm
 
 class PostImageInline(admin.TabularInline):
     model = PostImage
@@ -80,23 +84,26 @@ class PollQuestionAdmin(admin.ModelAdmin):
     inlines = [PollOptionInline]
 
     def save_formset(self, request, form, formset, change):
-        super().save_formset(request, form, formset, change)
-        
-        saved_options = form.instance.options.all().order_by('id')
-        letters = ['a', 'b', 'c', 'd']
-        
-        for i, option in enumerate(saved_options):
-            if i < len(letters):
-                new_key = letters[i]
-                if option.key != new_key:
-                    option.key = new_key
-                    option.save()
+        # Получаваме инстанциите, без да записваме в базата
+        instances = formset.save(commit=False)
+
+        # Задаваме ключовете на опциите преди да запишем в базата
+        for i, instance in enumerate(instances):
+            if i < 4:  # Максимален брой опции
+                letters = ['a', 'b', 'c', 'd']
+                instance.key = letters[i]
+            instance.question = form.instance  # Уверяваме се, че въпросът е зададен
+            instance.save()
+
+        # Изтриваме останалите връзки
+        formset.save_m2m()
 
         # Enforce single correct answer
-        correct_options = form.instance.options.filter(is_correct=True)
-        if correct_options.count() > 1:
-            last_correct_option = correct_options.order_by('-id').first()
-            form.instance.options.exclude(pk=last_correct_option.pk).update(is_correct=False)
+        if form.instance.pk:
+            correct_options = form.instance.options.filter(is_correct=True)
+            if correct_options.count() > 1:
+                last_correct_option = correct_options.order_by('-id').first()
+                form.instance.options.exclude(pk=last_correct_option.pk).update(is_correct=False)
 
 @admin.register(PollAnswer)
 class PollAnswerAdmin(admin.ModelAdmin):
@@ -259,6 +266,9 @@ class MemeOfWeekAdmin(admin.ModelAdmin):
         return "Няма изображение"
     image_preview.short_description = "Изображение"
 
+    def has_add_permission(self, request):
+        return False  # Това ще забрани добавянето на нови мемета през админ панела
+
 @admin.register(Cookie.ConsentRecord)
 class ConsentRecordAdmin(admin.ModelAdmin):
     list_display = ('user_display', 'ip_address', 'consent_status', 'timestamp', 'policy_version')
@@ -278,7 +288,55 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    change_form_template = 'admin/site_settings_change_form.html'  # Custom template
     list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration')
+
+    class Media:
+        css = {
+            'all': ('admin/css/meme_deletion.css',)
+        }
+        js = ('admin/js/meme_deletion.js',)
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        from .forms import SongSuggestionSelectionForm, PollQuestionSelectionForm  # Import here to avoid circular import
+        extra_context = extra_context or {}
+
+        # Handle meme deletion
+        if request.method == 'POST' and 'delete_selected_memes' in request.POST:
+            meme_form = MemeSelectionForm(request.POST, prefix='memes')
+            if meme_form.is_valid():
+                deleted_count = meme_form.delete_selected_memes()
+                self.message_user(request, f'Изтрити са {deleted_count} мем(а).')
+
+                # Redirect to avoid re-submission
+                return HttpResponseRedirect(request.get_full_path())
+
+        # Handle song suggestion deletion
+        if request.method == 'POST' and 'delete_selected_suggestions' in request.POST:
+            suggestion_form = SongSuggestionSelectionForm(request.POST, prefix='suggestions')
+            if suggestion_form.is_valid():
+                deleted_count = suggestion_form.delete_selected_suggestions()
+                self.message_user(request, f'Изтрити са {deleted_count} предложени(е) за песни.')
+
+                # Redirect to avoid re-submission
+                return HttpResponseRedirect(request.get_full_path())
+
+        # Handle poll question deletion
+        if request.method == 'POST' and 'delete_selected_polls' in request.POST:
+            poll_form = PollQuestionSelectionForm(request.POST, prefix='polls')
+            if poll_form.is_valid():
+                deleted_count = poll_form.delete_selected_polls()
+                self.message_user(request, f'Изтрити са {deleted_count} анкета(и).')
+
+                # Redirect to avoid re-submission
+                return HttpResponseRedirect(request.get_full_path())
+
+        # Pass the forms to the template
+        extra_context['meme_selection_form'] = MemeSelectionForm(prefix='memes')
+        extra_context['suggestion_selection_form'] = SongSuggestionSelectionForm(prefix='suggestions')
+        extra_context['poll_selection_form'] = PollQuestionSelectionForm(prefix='polls')
+
+        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def __str__(self):
         return "Настройки на сайта"
