@@ -57,6 +57,15 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
+    def post(self, request, *args, **kwargs):
+        site_settings, created = SiteSettings.objects.get_or_create(pk=1)
+        if not site_settings.enable_user_registration:
+            return Response(
+                {"detail": "User registration is currently disabled."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().post(request, *args, **kwargs)
+
 class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     queryset = BellSongSuggestion.objects.all()
     serializer_class = BellSongSuggestionSerializer

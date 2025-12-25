@@ -294,6 +294,7 @@ class SiteSettings(models.Model):
     enable_bell_suggestions = models.BooleanField(default=True, verbose_name="Активирани 'Предложения за песни'")
     enable_weekly_poll = models.BooleanField(default=True, verbose_name="Активирана 'Седмична анкета'")
     enable_meme_of_the_week = models.BooleanField(default=True, verbose_name="Активирано 'Меме на седмицата'")
+    enable_user_registration = models.BooleanField(default=True, verbose_name="Активирани 'Регистрации на потребители'")
 
     class Meta:
         verbose_name = "Настройки на сайта"

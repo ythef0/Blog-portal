@@ -175,7 +175,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['html_text']
 
     def get_html_text(self, obj):
-        return mark_safe(markdown.markdown(obj.text))
+        return mark_safe(markdown.markdown(obj.text, extensions=['nl2br']))
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -259,5 +259,5 @@ class ConsentRecordSerializer(serializers.ModelSerializer):
 class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
-        fields = ['maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week']
+        fields = ['maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration']
 

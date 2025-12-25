@@ -9,7 +9,7 @@ from unfold.widgets import UnfoldBooleanSwitchWidget
 
 class PostImageInline(admin.TabularInline):
     model = PostImage
-    extra = 5 # Show 5 empty forms for multiple file uploads by default
+    extra = 3 # Show 5 empty forms for multiple file uploads by default
 
 @admin.register(Posts)
 class PostsAdmin(admin.ModelAdmin):
@@ -278,7 +278,7 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week')
+    list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration')
 
     def __str__(self):
         return "Настройки на сайта"
