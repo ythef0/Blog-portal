@@ -1,7 +1,59 @@
 # blog/forms.py
 from django import forms
 from django.utils.safestring import mark_safe
-from .models import MemeOfWeek, BellSongSuggestion, PollQuestion
+from .models import MemeOfWeek, BellSongSuggestion, PollQuestion, Posts
+
+
+class MultipleFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
+class PostAdminForm(forms.ModelForm):
+    gallery_images = MultipleFileField(
+        required=False,
+        label="Качи нови изображения за галерията"
+    )
+    delete_images = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Съществуващи изображения"
+    )
+
+    class Meta:
+        model = Posts
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Get all images associated with the post
+            existing_images = self.instance.images.all()
+            image_choices = []
+            for img in existing_images:
+                # Create a choice with the image ID as value and an img tag as a label
+                label = mark_safe(f'Изтрий: <img src="{img.image.url}" width="150" style="margin: 5px;" />')
+                image_choices.append((img.pk, label))
+
+            # Set the choices for the delete_images field
+            self.fields['delete_images'].choices = image_choices
+        else:
+            # If it's a new post, hide the delete_images field
+            self.fields['delete_images'].widget = forms.HiddenInput()
+
 
 class MemeSelectionForm(forms.Form):
     def __init__(self, *args, **kwargs):

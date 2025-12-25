@@ -9,20 +9,16 @@ import markdown
 import re # Import regex module
 from unfold_markdown.widgets import MarkdownWidget
 from unfold.widgets import UnfoldBooleanSwitchWidget
-from .forms import MemeSelectionForm
-
-class PostImageInline(admin.TabularInline):
-    model = PostImage
-    extra = 3 # Show 5 empty forms for multiple file uploads by default
+from .forms import MemeSelectionForm, PostAdminForm
 
 @admin.register(Posts)
 class PostsAdmin(admin.ModelAdmin):
+    form = PostAdminForm
     readonly_fields_base = ('author', 'created_at')
     list_display = ('title', 'author', 'published', 'created_at')
     list_filter = ('published', 'category', 'created_at')
     search_fields = ('title', 'content')
     exclude = ('author',)
-    inlines = [PostImageInline] # Use the simple inline
 
     # V V V ДОБАВЯНЕ НА MARKDOWN ВИДЖЕТ V V V
     def formfield_for_dbfield(self, db_field, request, **kwargs):
@@ -42,6 +38,17 @@ class PostsAdmin(admin.ModelAdmin):
         if not obj.pk:
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
+        # Handle multiple image uploads
+        images = request.FILES.getlist('gallery_images')
+        for image in images:
+            PostImage.objects.create(post=obj, image=image)
+
+        # Handle image deletion
+        if 'delete_images' in form.cleaned_data:
+            images_to_delete = form.cleaned_data['delete_images']
+            PostImage.objects.filter(pk__in=images_to_delete, post=obj).delete()
+
 
     # V V V КОРЕКЦИЯ НА GET_QUERYSET V V V
     def get_queryset(self, request):
@@ -251,6 +258,8 @@ class PostImageAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src="{obj.image.url}" style="max-width: 150px; max-height: 150px;" />')
         return "Няма изображение"
     image_preview.short_description = "Преглед на изображението"
+    def has_add_permission(self, request):
+        return False  # Това ще забрани добавянето на нови мемета през админ панела
 
 @admin.register(MemeOfWeek)
 class MemeOfWeekAdmin(admin.ModelAdmin):
