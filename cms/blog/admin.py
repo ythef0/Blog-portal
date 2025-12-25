@@ -14,7 +14,7 @@ from .forms import MemeSelectionForm, PostAdminForm
 @admin.register(Posts)
 class PostsAdmin(admin.ModelAdmin):
     form = PostAdminForm
-    readonly_fields_base = ('author', 'created_at')
+    readonly_fields_base = ('author',)
     list_display = ('title', 'author', 'published', 'created_at')
     list_filter = ('published', 'category', 'created_at')
     search_fields = ('title', 'content')
