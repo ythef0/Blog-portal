@@ -139,7 +139,31 @@ class CommentList(generics.ListAPIView):
 
 class AddCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request, post_pk):
+        user = request.user
+        now = timezone.now()
+        
+        # Cooldown: 60 seconds between comments
+        last_comment = Comments.objects.filter(user=user).order_by('-created_at').first()
+        if last_comment:
+            time_since_last_comment = now - last_comment.created_at
+            if time_since_last_comment < timedelta(seconds=60):
+                wait_time = 60 - int(time_since_last_comment.total_seconds())
+                return Response(
+                    {"detail": f"Трябва да изчакате още {wait_time} секунди, преди да коментирате отново."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS
+                )
+
+        # Rate Limit: 5 comments per 30 minutes
+        thirty_minutes_ago = now - timedelta(minutes=30)
+        comment_count = Comments.objects.filter(user=user, created_at__gte=thirty_minutes_ago).count()
+        if comment_count >= 5:
+            return Response(
+                {"detail": "Надвишихте лимита от 5 коментара за 30 минути."},
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+
         post = get_object_or_404(Posts, id=post_pk)
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():

@@ -74,6 +74,8 @@ class CommentsAdmin(admin.ModelAdmin):
     readonly_fields_base = ('user', 'content' ,'created_at', 'post')
     list_display = ('user', 'content', 'created_at', 'post')
     search_fields = ('user', 'content')
+    def has_add_permission(self, request):
+        return False
 
 class PollOptionInline(admin.TabularInline):
     model = PollOption
@@ -163,6 +165,9 @@ class BellSongSuggestionAdmin(admin.ModelAdmin):
             return f'<a href="{obj.link}" target="_blank">{obj.link}</a> (Неподдържан формат)'
 
     embedded_media_display.short_description = "Медия"
+
+    def has_add_permission(self, request):
+        return False
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
