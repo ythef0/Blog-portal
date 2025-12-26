@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.contrib.auth import password_validation
 from rest_framework import viewsets, generics, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -306,4 +308,26 @@ class SiteStatusView(generics.RetrieveAPIView):
     def get_object(self):
         obj, created = SiteSettings.objects.get_or_create(pk=1)
         return obj
+
+class CheckUsernameView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        username = request.query_params.get('username', None)
+        if not username:
+            return Response({'error': 'Username parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        is_available = not User.objects.filter(username__iexact=username).exists()
+        return Response({'is_available': is_available})
+
+class ValidatePasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        password = request.data.get('password', '')
+        try:
+            password_validation.validate_password(password)
+            return Response({'is_valid': True})
+        except ValidationError as e:
+            return Response({'is_valid': False, 'errors': e.messages}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -19,6 +19,8 @@ urlpatterns = [
 
     # Път за регистрация
     path('auth/register/', blog_views.RegisterView.as_view(), name='register'),
+    path('auth/check-username/', blog_views.CheckUsernameView.as_view(), name='check-username'),
+    path('auth/validate-password/', blog_views.ValidatePasswordView.as_view(), name='validate-password'),
     
     # Път за контактен формуляр
     path('contact/', blog_views.ContactFormSubmitView.as_view(), name='contact-submit'),
