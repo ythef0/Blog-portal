@@ -49,7 +49,7 @@ class MemeOfWeekViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         site_settings, created = SiteSettings.objects.get_or_create(pk=1)
         if not site_settings.enable_meme_of_the_week:
-            raise PermissionDenied("Feature 'Meme of the Week' is currently disabled.")
+            raise PermissionDenied("Функцията 'Меме на седмицата' в момента е деактивирана.")
         serializer.save(user=self.request.user)
 
 class RegisterView(generics.CreateAPIView):
@@ -61,7 +61,7 @@ class RegisterView(generics.CreateAPIView):
         site_settings, created = SiteSettings.objects.get_or_create(pk=1)
         if not site_settings.enable_user_registration:
             return Response(
-                {"detail": "User registration is currently disabled."},
+                {"detail": "Регистрацията на потребители е временно деактивирана."},
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().post(request, *args, **kwargs)
@@ -73,7 +73,7 @@ class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     def perform_create(self, serializer):
         site_settings, created = SiteSettings.objects.get_or_create(pk=1)
         if not site_settings.enable_bell_suggestions:
-            raise PermissionDenied("Feature 'Bell Suggestions' is currently disabled.")
+            raise PermissionDenied("Функцията 'Предложения за звънец' в момента е деактивирана.")
         serializer.save(user=self.request.user, status='pending')
 
 class ApprovedBellSongListView(generics.ListAPIView):
@@ -89,11 +89,11 @@ class BellSongVoteView(APIView):
     def post(self, request, pk):
         song = get_object_or_404(BellSongSuggestion, pk=pk)
         if song.status != 'approved':
-            return Response({'detail': 'You can only vote on approved songs.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Може да гласувате само за одобрени песни.'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if user has already voted
         if request.user in song.voted_by.all():
-            return Response({'detail': 'You have already voted for this song.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Вече сте гласували за тази песен.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Add user to voters and increment vote count
         song.voted_by.add(request.user)
@@ -109,11 +109,11 @@ class MemeVoteView(APIView):
     def post(self, request, pk):
         meme = get_object_or_404(MemeOfWeek, pk=pk)
         if not meme.is_approved:
-            return Response({'detail': 'You can only vote on approved memes.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Може да гласувате само за одобрени мемета.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if user has already voted
         if request.user in meme.voted_by.all():
-            return Response({'detail': 'You have already voted for this meme.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Вече сте гласували за това меме.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Add user to voters and increment vote count
         meme.voted_by.add(request.user)
@@ -158,7 +158,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
     def status(self, request):
         site_settings, created = SiteSettings.objects.get_or_create(pk=1)
         if not site_settings.enable_weekly_poll:
-            return Response({"detail": "Polls feature is currently disabled."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Функцията 'Анкети' в момента е деактивирана."}, status=status.HTTP_404_NOT_FOUND)
 
         user = request.user
         now = timezone.now()
@@ -166,7 +166,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
         active_question = PollQuestion.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
         if not active_question:
-            return Response({"detail": "No active poll questions available at this time."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "В момента няма активни въпроси за анкети."}, status=status.HTTP_404_NOT_FOUND)
 
         latest_answer = PollAnswer.objects.filter(user=user, question=active_question).first()
 
@@ -196,7 +196,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
     def submit(self, request):
         site_settings, created = SiteSettings.objects.get_or_create(pk=1)
         if not site_settings.enable_weekly_poll:
-            return Response({"detail": "Polls feature is currently disabled."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Функцията 'Анкети' в момента е деактивирана."}, status=status.HTTP_403_FORBIDDEN)
 
         user = request.user
         now = timezone.now()
@@ -215,13 +215,13 @@ class WeeklyPollViewSet(viewsets.ViewSet):
         ).first()
 
         if not active_question:
-            return Response({"detail": "This poll is not currently active."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Тази анкета в момента не е активна."}, status=status.HTTP_403_FORBIDDEN)
 
         if selected_option.question != active_question:
-            return Response({"detail": "The selected option does not belong to this question."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Избраната опция не принадлежи към този въпрос."}, status=status.HTTP_400_BAD_REQUEST)
 
         if PollAnswer.objects.filter(user=user, question=active_question).exists():
-            return Response({"detail": "You have already answered this poll."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Вече сте отговорили на тази анкета."}, status=status.HTTP_403_FORBIDDEN)
         
         PollAnswer.objects.create(user=user, question=active_question, selected_option=selected_option)
 
@@ -278,7 +278,7 @@ class TermsOfServiceView(generics.GenericAPIView):
         tos = TermsOfService.objects.order_by('-date').first()
         if tos:
             return Response(self.get_serializer(tos).data)
-        return Response({"detail": "No Terms of Service found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Няма намерени Условия за ползване."}, status=status.HTTP_404_NOT_FOUND)
 
 class PrivacyPolicyView(generics.GenericAPIView):
     serializer_class = PrivacyPolicySerializer
@@ -287,7 +287,7 @@ class PrivacyPolicyView(generics.GenericAPIView):
         pp = PrivacyPolicy.objects.order_by('-date').first()
         if pp:
             return Response(self.get_serializer(pp).data)
-        return Response({"detail": "No Privacy Policy found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Няма намерена Политика за поверителност."}, status=status.HTTP_404_NOT_FOUND)
 
 class ConsentRecordCreateView(generics.CreateAPIView):
     queryset = Cookie.ConsentRecord.objects.all()
