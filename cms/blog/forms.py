@@ -1,7 +1,8 @@
 # blog/forms.py
 from django import forms
 from django.utils.safestring import mark_safe
-from .models import MemeOfWeek, BellSongSuggestion, PollQuestion, Posts
+from django.core.validators import FileExtensionValidator
+from .models import MemeOfWeek, BellSongSuggestion, PollQuestion, Posts, PostDocument # Import PostDocument
 
 
 class MultipleFileInput(forms.FileInput):
@@ -21,6 +22,7 @@ class MultipleFileField(forms.FileField):
             result = single_file_clean(data, initial)
         return result
 
+allowed_document_extensions = ['pdf', 'docx', 'xlsx', 'zip']
 
 class PostAdminForm(forms.ModelForm):
     gallery_images = MultipleFileField(
@@ -33,6 +35,17 @@ class PostAdminForm(forms.ModelForm):
         label="Съществуващи изображения"
     )
 
+    gallery_documents = MultipleFileField(
+        required=False,
+        label="Качи нови документи (PDF, DOCX, XLSX, ZIP)",
+        validators=[FileExtensionValidator(allowed_extensions=allowed_document_extensions)]
+    )
+    delete_documents = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Съществуващи документи"
+    )
+
     class Meta:
         model = Posts
         fields = '__all__'
@@ -40,19 +53,38 @@ class PostAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            # Get all images associated with the post
+            # Populate delete_images for existing images
             existing_images = self.instance.images.all()
             image_choices = []
             for img in existing_images:
-                # Create a choice with the image ID as value and an img tag as a label
                 label = mark_safe(f'Изтрий: <img src="{img.image.url}" width="150" style="margin: 5px;" />')
                 image_choices.append((img.pk, label))
-
-            # Set the choices for the delete_images field
             self.fields['delete_images'].choices = image_choices
+
+            # Populate delete_documents for existing documents
+            existing_documents = self.instance.documents.all()
+            document_choices = []
+            for doc in existing_documents:
+                # Display file icon and name for document choices
+                file_icon = "📄" # Generic document icon, could be more specific
+                if doc.file.name.lower().endswith('.pdf'):
+                    file_icon = "PDF"
+                elif doc.file.name.lower().endswith('.docx'):
+                    file_icon = "Word"
+                elif doc.file.name.lower().endswith('.xlsx'):
+                    file_icon = "Excel"
+                elif doc.file.name.lower().endswith('.zip'):
+                    file_icon = "ZIP"
+
+                label_text = doc.file_name if doc.file_name else doc.file.name.split('/')[-1]
+                label = mark_safe(f'{file_icon} Изтрий: {label_text}')
+                document_choices.append((doc.pk, label))
+            self.fields['delete_documents'].choices = document_choices
+
         else:
-            # If it's a new post, hide the delete_images field
+            # If it's a new post, hide the delete_images and delete_documents fields
             self.fields['delete_images'].widget = forms.HiddenInput()
+            self.fields['delete_documents'].widget = forms.HiddenInput()
 
 
 class MemeSelectionForm(forms.Form):

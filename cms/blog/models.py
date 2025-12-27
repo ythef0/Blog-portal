@@ -1,9 +1,30 @@
+import uuid
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import BooleanField
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+def post_media_upload_path(instance, filename, field_type):
+    """
+    Generates a robust upload path for post-related media.
+    Handles both new and existing post objects.
+    """
+    post_id = None
+    if hasattr(instance, 'post') and instance.post.pk:
+        # Instance is a related model (PostImage, PostDocument) with a saved parent post.
+        post_id = instance.post.pk
+    elif hasattr(instance, 'pk') and instance.pk:
+        # Instance is the main Post model and it has been saved.
+        post_id = instance.pk
+    
+    if post_id is None:
+        # This handles a new, unsaved Post instance.
+        # We generate a temporary UUID to group files for this new post.
+        # This path will be permanent, but it prevents using 'None' or 'unknown'.
+        post_id = uuid.uuid4().hex
+
+    return f'posts/{post_id}/{field_type}/{filename}'
 
 
 def post_banner_upload_path(instance, filename):
@@ -11,6 +32,9 @@ def post_banner_upload_path(instance, filename):
 
 def post_gallery_upload_path(instance, filename):
     return post_media_upload_path(instance, filename, 'gallery')
+    
+def post_document_upload_path(instance, filename):
+    return post_media_upload_path(instance, filename, 'documents')
 
 def meme_upload_path(instance, filename):
     return f'memes/{instance.user.username}/{filename}'
@@ -244,20 +268,6 @@ class PrivacyPolicy(models.Model):
         verbose_name = "Политика за поверителност"
         verbose_name_plural = "Политики за поверителност"
 
-# Function to define the upload path for post images and banners
-def post_media_upload_path(instance, filename, field_type):
-    # 'instance' can be a Post object (for banner) or a PostImage object (for gallery images)
-    if isinstance(instance, Posts):
-        post_id = instance.pk
-    elif isinstance(instance, PostImage):
-        post_id = instance.post.pk
-    else:
-        # Fallback or error for unexpected instance type
-        post_id = 'unknown' # Or raise an error
-        
-    return f'posts/{post_id}/{field_type}/{filename}'
-
-
 class PostImage(models.Model):
     post = models.ForeignKey(Posts, related_name='images', on_delete=models.CASCADE, help_text="Публикацията, към която е свързана тази снимка.")
     image = models.ImageField(upload_to=post_gallery_upload_path, help_text="Файлът с изображението.")
@@ -268,6 +278,19 @@ class PostImage(models.Model):
     class Meta:
         verbose_name = "Снимка към публикация"
         verbose_name_plural = "Снимки към публикации"
+
+class PostDocument(models.Model):
+    post = models.ForeignKey(Posts, related_name='documents', on_delete=models.CASCADE, help_text="Публикацията, към която е свързан този документ.")
+    file = models.FileField(upload_to=post_document_upload_path, help_text="Файлът с документа (PDF, DOCX, XLSX, ZIP).")
+    file_name = models.CharField(max_length=255, blank=True, null=True, help_text="По избор: потребителско име за документа.")
+    uploaded_at = models.DateTimeField(auto_now_add=True, help_text="Дата и час на качване на документа. Формат: YYYY-MM-DD HH:MM:SS.")
+
+    def __str__(self):
+        return self.file_name or self.file.name
+
+    class Meta:
+        verbose_name = "Документ към публикация"
+        verbose_name_plural = "Документи към публикации"
 
 
 class Event(models.Model):

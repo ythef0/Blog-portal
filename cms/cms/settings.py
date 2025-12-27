@@ -227,6 +227,11 @@ UNFOLD = {
                         "icon": "image",
                     },
                     {
+                        "title": "Файлове към публикации",
+                        "link": "/admin/blog/postdocument/",
+                        "icon": "book",
+                    },
+                    {
                         "title": "Събития",
                         "link": "/admin/blog/event/",
                         "icon": "event",

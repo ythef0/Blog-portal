@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.db import models
@@ -48,6 +48,16 @@ class PostsAdmin(admin.ModelAdmin):
         if 'delete_images' in form.cleaned_data:
             images_to_delete = form.cleaned_data['delete_images']
             PostImage.objects.filter(pk__in=images_to_delete, post=obj).delete()
+
+        # Handle multiple document uploads
+        documents = request.FILES.getlist('gallery_documents')
+        for document in documents:
+            PostDocument.objects.create(post=obj, file=document)
+        
+        # Handle document deletion
+        if 'delete_documents' in form.cleaned_data:
+            documents_to_delete = form.cleaned_data['delete_documents']
+            PostDocument.objects.filter(pk__in=documents_to_delete, post=obj).delete()
 
 
     # V V V КОРЕКЦИЯ НА GET_QUERYSET V V V
@@ -265,6 +275,17 @@ class PostImageAdmin(admin.ModelAdmin):
     image_preview.short_description = "Преглед на изображението"
     def has_add_permission(self, request):
         return False  # Това ще забрани добавянето на нови мемета през админ панела
+
+@admin.register(PostDocument)
+class PostDocumentAdmin(admin.ModelAdmin):
+    list_display = ('post', 'file_name')
+    list_filter = ('post',)
+    search_fields = ('file_name', 'post__title')
+    readonly_fields = ('post', 'file', 'file_name')
+
+    def has_add_permission(self, request):
+        # Documents are added via the Post admin, not directly
+        return False
 
 @admin.register(MemeOfWeek)
 class MemeOfWeekAdmin(admin.ModelAdmin):

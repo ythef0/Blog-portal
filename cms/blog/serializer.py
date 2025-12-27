@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Posts, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, \
-    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
+from .models import Posts, UserProfile, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, \
+    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 import requests
@@ -14,10 +14,23 @@ class PostImageSerializer(serializers.ModelSerializer):
         model = PostImage
         fields = ['image']
 
+class PostDocumentSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    class Meta:
+        model = PostDocument
+        fields = ['id', 'file_name', 'file_url', 'uploaded_at']
+
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file and hasattr(obj.file, 'url'):
+            return request.build_absolute_uri(obj.file.url)
+        return None
+
 class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
     category_name = serializers.StringRelatedField(source='category')
     images = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = Posts
@@ -34,7 +47,8 @@ class PostSerializer(serializers.ModelSerializer):
             'created_at',
             'published',
             'allowed',
-            'images'
+            'images',
+            'documents' # Add documents here
         )
 
     def get_author_username(self, obj):
@@ -44,6 +58,11 @@ class PostSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         images = obj.images.all()
         return [request.build_absolute_uri(image.image.url) for image in images if image.image]
+
+    def get_documents(self, obj):
+        request = self.context.get('request')
+        documents = obj.documents.all()
+        return [PostDocumentSerializer(doc, context={'request': request}).data for doc in documents]
 
 class RegisterSerializer(serializers.ModelSerializer):
     # Поле за парола (само за писане и с валидация)
