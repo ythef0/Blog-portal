@@ -16,6 +16,8 @@ class PostImageSerializer(serializers.ModelSerializer):
 
 class PostDocumentSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
+    file_name = serializers.SerializerMethodField()
+
     class Meta:
         model = PostDocument
         fields = ['id', 'file_name', 'file_url', 'uploaded_at']
@@ -24,6 +26,11 @@ class PostDocumentSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.file and hasattr(obj.file, 'url'):
             return request.build_absolute_uri(obj.file.url)
+        return None
+    
+    def get_file_name(self, obj):
+        if obj.file and hasattr(obj.file, 'name'):
+            return obj.file.name.split('/')[-1]
         return None
 
 class PostSerializer(serializers.ModelSerializer):

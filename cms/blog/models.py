@@ -282,11 +282,10 @@ class PostImage(models.Model):
 class PostDocument(models.Model):
     post = models.ForeignKey(Posts, related_name='documents', on_delete=models.CASCADE, help_text="Публикацията, към която е свързан този документ.")
     file = models.FileField(upload_to=post_document_upload_path, help_text="Файлът с документа (PDF, DOCX, XLSX, ZIP).")
-    file_name = models.CharField(max_length=255, blank=True, null=True, help_text="По избор: потребителско име за документа.")
     uploaded_at = models.DateTimeField(auto_now_add=True, help_text="Дата и час на качване на документа. Формат: YYYY-MM-DD HH:MM:SS.")
 
     def __str__(self):
-        return self.file_name or self.file.name
+        return self.file.name
 
     class Meta:
         verbose_name = "Документ към публикация"

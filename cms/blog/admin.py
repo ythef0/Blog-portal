@@ -278,10 +278,16 @@ class PostImageAdmin(admin.ModelAdmin):
 
 @admin.register(PostDocument)
 class PostDocumentAdmin(admin.ModelAdmin):
-    list_display = ('post', 'file_name')
+    list_display = ('post', 'get_file_name')
     list_filter = ('post',)
-    search_fields = ('file_name', 'post__title')
-    readonly_fields = ('post', 'file', 'file_name')
+    search_fields = ('file', 'post__title')
+    readonly_fields = ('post', 'file')
+
+    def get_file_name(self, obj):
+        if obj.file:
+            return obj.file.name.split('/')[-1]
+        return "N/A"
+    get_file_name.short_description = 'File Name'
 
     def has_add_permission(self, request):
         # Documents are added via the Post admin, not directly
