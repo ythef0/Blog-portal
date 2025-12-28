@@ -1,0 +1,59 @@
+/* static/admin/css/meme_deletion.css */
+.meme-selection-container {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 15px 0;
+    background-color: #f9f9f9;
+}
+
+.meme-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.meme-item:last-child {
+    border-bottom: none;
+}
+
+.meme-checkbox {
+    margin-right: 10px;
+}
+
+.meme-preview {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.status-approved {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-not-approved {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.delete-meme-button {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border: 1px solid #ccc !important;
+    padding: 10px 15px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+}
+
+.delete-meme-button:hover {
+    background-color: #c82333 !important;
+}
+
+.meme-section-header {
+    color: #ff0000 !important;
+    font-size: 1.5em !important;
+    margin-bottom: 15px !important;
+    font-weight: bold;
+}
