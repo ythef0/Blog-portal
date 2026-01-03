@@ -23,9 +23,8 @@ class PostDocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'file_name', 'file_url', 'uploaded_at']
 
     def get_file_url(self, obj):
-        request = self.context.get('request')
         if obj.file and hasattr(obj.file, 'url'):
-            return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
         return None
     
     def get_file_name(self, obj):
@@ -62,9 +61,8 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.author.username
 
     def get_images(self, obj):
-        request = self.context.get('request')
         images = obj.images.all()
-        return [request.build_absolute_uri(image.image.url) for image in images if image.image]
+        return [image.image.url for image in images if image.image]
 
     def get_documents(self, obj):
         request = self.context.get('request')
@@ -265,9 +263,8 @@ class MemeOfWeekSerializer(serializers.ModelSerializer):
         }
 
     def get_image_url(self, obj):
-        request = self.context.get('request')
         if obj.image and hasattr(obj.image, 'url'):
-            return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
         return None
 
     def get_has_voted(self, obj):

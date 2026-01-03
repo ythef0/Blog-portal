@@ -26,9 +26,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles_collected"
 SECRET_KEY = 'django-insecure-z9%#w@3^tu2u@n1p$y7n-__an=5o1it+h0+$)qk$0*_h5)@%sq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
+
+# Settings for running behind a reverse proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 DJANGO_ADMIN_LOGS_ENABLED = True
 # Application definition
@@ -65,6 +69,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     'http://localhost:8080',
 ]
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost', "http://192.168.0.103"]
 
 INTERNAL_IPS = [
     '127.0.0.1',
@@ -197,7 +203,7 @@ UNFOLD = {
                 "items":[
                     {
                         "title": "Начало",
-                        "link": "/admin",
+                        "link": "/admin/",
                         "icon": "home",
                     },
                     {
@@ -326,4 +332,3 @@ UNFOLD = {
         ],
     },
 }
-
