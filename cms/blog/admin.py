@@ -1,4 +1,4 @@
-from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument
+from blog.models import Posts, Category, UserProfile, Comments, PollQuestion, PollOption, PollAnswer, ContactSubmission, Notification, TermsOfService, Event, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument, Changelog
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.db import models
@@ -259,6 +259,18 @@ class EventAdmin(admin.ModelAdmin):
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         if db_field.name == "description":
             kwargs["widget"] = MarkdownWidget(attrs={"rows": 10})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+@admin.register(Changelog)
+class ChangelogAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'is_active', 'created_at', 'updated_at')
+    list_filter = ('is_active', 'updated_at')
+    search_fields = ('content',)
+    readonly_fields = ('created_at', 'updated_at')
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "content":
+            kwargs["widget"] = MarkdownWidget(attrs={"rows": 15})
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
 @admin.register(PostImage)

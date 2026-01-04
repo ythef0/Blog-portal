@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Posts, UserProfile, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, \
-    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument
+    Event, TermsOfService, PostImage, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, PostDocument, Changelog
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 import requests
@@ -206,6 +206,12 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
+
+
+class ChangelogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Changelog
+        fields = ['content', 'updated_at']
 
 
 class TermsOfServiceSerializer(serializers.ModelSerializer):

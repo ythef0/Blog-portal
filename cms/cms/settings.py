@@ -26,7 +26,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles_collected"
 SECRET_KEY = 'django-insecure-z9%#w@3^tu2u@n1p$y7n-__an=5o1it+h0+$)qk$0*_h5)@%sq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -292,6 +292,11 @@ UNFOLD = {
                     {
                         "title": "Настройки на сайта",
                         "link": "/admin/blog/sitesettings/",
+                        "icon": "settings",
+                    },
+                    {
+                        "title": "Регистър с промени",
+                        "link": "/admin/blog/changelog/add/",
                         "icon": "settings",
                     },
                     {
