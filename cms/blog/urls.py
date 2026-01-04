@@ -21,7 +21,15 @@ urlpatterns = [
     path('auth/register/', blog_views.RegisterView.as_view(), name='register'),
     path('auth/check-username/', blog_views.CheckUsernameView.as_view(), name='check-username'),
     path('auth/validate-password/', blog_views.ValidatePasswordView.as_view(), name='validate-password'),
-    
+    path('auth/profile/change-password/', blog_views.PasswordChangeView.as_view(), name='password-change'),
+    path('auth/profile/delete/', blog_views.AccountDeleteView.as_view(), name='account-delete'),
+
+    # Пътища за съдържание на потребителя
+    path('my-content/songs/', blog_views.MySongSuggestionsView.as_view(), name='my-songs'),
+    path('my-content/memes/', blog_views.MyMemesView.as_view(), name='my-memes'),
+    path('my-content/comments/', blog_views.MyCommentsView.as_view(), name='my-comments'),
+    path('my-content/comments/<int:pk>/delete/', blog_views.MyCommentDeleteView.as_view(), name='delete-my-comment'),
+
     # Път за контактен формуляр
     path('contact/', blog_views.ContactFormSubmitView.as_view(), name='contact-submit'),
 
