@@ -26,7 +26,9 @@ urlpatterns = [
 
     # Пътища за съдържание на потребителя
     path('my-content/songs/', blog_views.MySongSuggestionsView.as_view(), name='my-songs'),
+    path('my-content/songs/<int:pk>/delete/', blog_views.MySongSuggestionDeleteView.as_view(), name='delete-my-song'),
     path('my-content/memes/', blog_views.MyMemesView.as_view(), name='my-memes'),
+    path('my-content/memes/<int:pk>/delete/', blog_views.MyMemeDeleteView.as_view(), name='delete-my-meme'),
     path('my-content/comments/', blog_views.MyCommentsView.as_view(), name='my-comments'),
     path('my-content/comments/<int:pk>/delete/', blog_views.MyCommentDeleteView.as_view(), name='delete-my-comment'),
 

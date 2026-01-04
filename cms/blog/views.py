@@ -131,6 +131,32 @@ class MyCommentDeleteView(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated, IsOwner)
 
 
+class MySongSuggestionDeleteView(generics.DestroyAPIView):
+    queryset = BellSongSuggestion.objects.all()
+    serializer_class = BellSongSuggestionSerializer
+    permission_classes = (IsAuthenticated, IsOwner)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.status != 'pending':
+            return Response({"detail": "Можете да триете само чакащи предложения."}, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyMemeDeleteView(generics.DestroyAPIView):
+    queryset = MemeOfWeek.objects.all()
+    serializer_class = MemeOfWeekSerializer
+    permission_classes = (IsAuthenticated, IsOwner)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.is_approved:
+            return Response({"detail": "Можете да триете само неодобрени мемета."}, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     queryset = BellSongSuggestion.objects.all()
     serializer_class = BellSongSuggestionSerializer

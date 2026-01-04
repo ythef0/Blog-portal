@@ -238,6 +238,11 @@ UNFOLD = {
                         "icon": "book",
                     },
                     {
+                        "title": "Коментари",
+                        "link": "/admin/blog/comments/",
+                        "icon": "comment",
+                    },
+                    {
                         "title": "Събития",
                         "link": "/admin/blog/event/",
                         "icon": "event",
@@ -274,11 +279,7 @@ UNFOLD = {
                         "link": "/admin/blog/memeofweek/",
                         "icon": "sentiment_very_satisfied",
                     },
-                    {
-                        "title": "Коментари",
-                        "link": "/admin/blog/comments/",
-                        "icon": "comment",
-                    },
+
                 ],
             },
             {
@@ -293,7 +294,7 @@ UNFOLD = {
                     },
                     {
                         "title": "Регистър с промени",
-                        "link": "/admin/blog/changelog/add/",
+                        "link": "/admin/blog/changelog/",
                         "icon": "settings",
                     },
                     {
