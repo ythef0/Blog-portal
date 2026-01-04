@@ -10,13 +10,14 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count, Q, Max
 from django.contrib.auth.models import User
-from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings
+from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, Changelog
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
-    PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer, SiteSettingsSerializer
+    PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer, SiteSettingsSerializer,
+    ChangelogSerializer
 )
 
 def get_client_ip(request):
@@ -26,12 +27,10 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Posts.objects.filter(published=True, allowed=True).order_by('-created_at')
     serializer_class = PostSerializer
     http_method_names = ['get', 'head', 'options']
-
 class MemeOfWeekViewSet(viewsets.ModelViewSet):
     serializer_class = MemeOfWeekSerializer
     http_method_names = ['get', 'post', 'head', 'options']
@@ -53,7 +52,6 @@ class MemeOfWeekViewSet(viewsets.ModelViewSet):
         if not site_settings.enable_meme_of_the_week:
             raise PermissionDenied("Функцията 'Меме на седмицата' в момента е деактивирана.")
         serializer.save(user=self.request.user)
-
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     queryset = User.objects.all()
@@ -67,7 +65,6 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().post(request, *args, **kwargs)
-
 class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     queryset = BellSongSuggestion.objects.all()
     serializer_class = BellSongSuggestionSerializer
@@ -77,7 +74,6 @@ class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
         if not site_settings.enable_bell_suggestions:
             raise PermissionDenied("Функцията 'Предложения за звънец' в момента е деактивирана.")
         serializer.save(user=self.request.user, status='pending')
-
 class ApprovedBellSongListView(generics.ListAPIView):
     queryset = BellSongSuggestion.objects.filter(status='approved').order_by('-votes', '-submitted_at')
     serializer_class = BellSongSuggestionSerializer
@@ -85,7 +81,6 @@ class ApprovedBellSongListView(generics.ListAPIView):
 
     def get_serializer_context(self):
         return {'request': self.request}
-
 class BellSongVoteView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, pk):
@@ -105,7 +100,6 @@ class BellSongVoteView(APIView):
         # Pass context to serializer to access the request
         serializer = BellSongSuggestionSerializer(song, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 class MemeVoteView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, pk):
@@ -126,7 +120,6 @@ class MemeVoteView(APIView):
         serializer = MemeOfWeekSerializer(meme, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'options', 'head']
@@ -136,7 +129,6 @@ class CommentList(generics.ListAPIView):
             return Comments.objects.none()
         post = get_object_or_404(Posts, id=post_id)
         return Comments.objects.filter(post=post).order_by('-created_at')
-
 class AddCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -170,7 +162,6 @@ class AddCommentAPIView(APIView):
             comment = serializer.save(user=request.user, post=post)
             return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class WeeklyPollViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     def get_serializer_class(self):
@@ -277,7 +268,6 @@ class WeeklyPollViewSet(viewsets.ViewSet):
             'recent_participants': recent_participants
         })
         return Response(serializer.data)
-
 class ContactFormSubmitView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -286,7 +276,6 @@ class ContactFormSubmitView(APIView):
             serializer.save(user=request.user if request.user.is_authenticated else None)
             return Response({"detail": "Съобщението е изпратено успешно!"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class NotificationListView(generics.ListAPIView):
     queryset = Notification.objects.filter(enabled=True).order_by('-created_at')
     serializer_class = NotificationSerializer
@@ -297,6 +286,11 @@ class EventListView(generics.ListAPIView):
     serializer_class = EventSerializer
     permission_classes = [AllowAny]
 
+class ChangelogListView(generics.ListAPIView):
+    queryset = Changelog.objects.filter(is_active=True).order_by('-updated_at')
+    serializer_class = ChangelogSerializer
+    permission_classes = [AllowAny]
+
 class TermsOfServiceView(generics.GenericAPIView):
     serializer_class = TermsOfServiceSerializer
     permission_classes = [AllowAny]
@@ -305,7 +299,6 @@ class TermsOfServiceView(generics.GenericAPIView):
         if tos:
             return Response(self.get_serializer(tos).data)
         return Response({"detail": "Няма намерени Условия за ползване."}, status=status.HTTP_404_NOT_FOUND)
-
 class PrivacyPolicyView(generics.GenericAPIView):
     serializer_class = PrivacyPolicySerializer
     permission_classes = [AllowAny]
@@ -314,7 +307,6 @@ class PrivacyPolicyView(generics.GenericAPIView):
         if pp:
             return Response(self.get_serializer(pp).data)
         return Response({"detail": "Няма намерена Политика за поверителност."}, status=status.HTTP_404_NOT_FOUND)
-
 class ConsentRecordCreateView(generics.CreateAPIView):
     queryset = Cookie.ConsentRecord.objects.all()
     serializer_class = ConsentRecordSerializer
@@ -324,7 +316,6 @@ class ConsentRecordCreateView(generics.CreateAPIView):
         user = self.request.user if self.request.user.is_authenticated else None
         ip_address = get_client_ip(self.request)
         serializer.save(user=user, ip_address=ip_address)
-
 class SiteStatusView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     serializer_class = SiteSettingsSerializer
@@ -332,7 +323,6 @@ class SiteStatusView(generics.RetrieveAPIView):
     def get_object(self):
         obj, created = SiteSettings.objects.get_or_create(pk=1)
         return obj
-
 class CheckUsernameView(APIView):
     permission_classes = [AllowAny]
 
@@ -343,7 +333,6 @@ class CheckUsernameView(APIView):
         
         is_available = not User.objects.filter(username__iexact=username).exists()
         return Response({'is_available': is_available})
-
 class ValidatePasswordView(APIView):
     permission_classes = [AllowAny]
 

@@ -311,6 +311,22 @@ class Event(models.Model):
         verbose_name_plural = "Събития"
         ordering = ['start_datetime']
 
+
+class Changelog(models.Model):
+    content = models.TextField(help_text="Съдържание на промените в Markdown формат.")
+    created_at = models.DateTimeField(auto_now_add=True, help_text="Дата на създаване.")
+    updated_at = models.DateTimeField(auto_now=True, help_text="Дата на последна редакция.")
+    is_active = models.BooleanField(default=True, help_text="Отбележете, за да се вземе предвид този запис.")
+
+    class Meta:
+        verbose_name = "Запис в дневника на промените"
+        verbose_name_plural = "Дневник на промените"
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"Промени от {self.updated_at.strftime('%Y-%m-%d %H:%M')}"
+
+
 class SiteSettings(models.Model):
     maintenance_mode = models.BooleanField(default=False, verbose_name="Режим на поддръжка", help_text="Ако е активиран, сайтът ще показва страница за поддръжка на всички потребители, които не са администратори.")
     enable_bell_suggestions = models.BooleanField(default=True, verbose_name="Активирани 'Предложения за песни'", help_text="Позволява на потребителите да предлагат песни за училищния звънец.")
