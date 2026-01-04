@@ -123,6 +123,21 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(style={"input_type": "password"}, required=True)
+    new_password = serializers.CharField(style={"input_type": "password"}, required=True)
+    new_password_confirm = serializers.CharField(style={"input_type": "password"}, required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+
+    def validate(self, data):
+        if data['new_password'] != data['new_password_confirm']:
+            raise serializers.ValidationError({"new_password": "Новата парола и потвърждението не съвпадат."})
+        return data
+
+
 class CommentSerializer(serializers.ModelSerializer):
     # 1. ЕКСПЛИЦИТНО ДЕФИНИРАНО ПОЛЕ
     # post_id е тук, за да вземе стойността 'id' от свързания пост
@@ -269,8 +284,12 @@ class MemeOfWeekSerializer(serializers.ModelSerializer):
         }
 
     def get_image_url(self, obj):
+        request = self.context.get('request')
         if obj.image and hasattr(obj.image, 'url'):
-            return obj.image.url
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            else:
+                return obj.image.url # Fallback for contexts without request
         return None
 
     def get_has_voted(self, obj):

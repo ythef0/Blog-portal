@@ -11,13 +11,14 @@ from datetime import timedelta
 from django.db.models import Count, Q, Max
 from django.contrib.auth.models import User
 from .models import Posts, Comments, PollQuestion, PollAnswer, PollOption, ContactSubmission, Notification, Event, TermsOfService, BellSongSuggestion, PrivacyPolicy, MemeOfWeek, Cookie, SiteSettings, Changelog
+from .permissions import IsOwner
 from .serializer import (
     PostSerializer, RegisterSerializer, CommentSerializer,
     PollQuestionSerializer, UserPollStatusSerializer, PollAnswerSerializer,
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
     PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer, SiteSettingsSerializer,
-    ChangelogSerializer
+    ChangelogSerializer, PasswordChangeSerializer
 )
 
 def get_client_ip(request):
@@ -65,6 +66,71 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().post(request, *args, **kwargs)
+
+
+class PasswordChangeView(generics.UpdateAPIView):
+    serializer_class = PasswordChangeSerializer
+    model = User
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("current_password")):
+                return Response({"current_password": ["Грешна парола."]}, status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response({"status": "Паролата е сменена успешно"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AccountDeleteView(generics.DestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def get_object(self):
+        return self.request.user
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"status": "Профилът е изтрит успешно"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class MySongSuggestionsView(generics.ListAPIView):
+    serializer_class = BellSongSuggestionSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return BellSongSuggestion.objects.filter(user=self.request.user)
+
+class MyMemesView(generics.ListAPIView):
+    serializer_class = MemeOfWeekSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return MemeOfWeek.objects.filter(user=self.request.user)
+
+class MyCommentsView(generics.ListAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Comments.objects.filter(user=self.request.user)
+
+class MyCommentDeleteView(generics.DestroyAPIView):
+    queryset = Comments.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = (IsAuthenticated, IsOwner)
+
+
 class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     queryset = BellSongSuggestion.objects.all()
     serializer_class = BellSongSuggestionSerializer
