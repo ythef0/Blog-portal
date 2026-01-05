@@ -79,10 +79,6 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="Потребителят, който е написал коментара.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и час на създаване на коментара. Формат: YYYY-MM-DD HH:MM:SS.")
     post = models.ForeignKey(Posts, on_delete=models.CASCADE, help_text="Публикацията, към която е коментарът.")
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies', help_text="Родителският коментар, ако този е отговор.")
-
-    class Meta:
-        ordering = ['created_at']
 
     def __str__(self):
         return self.content
