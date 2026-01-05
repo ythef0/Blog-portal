@@ -26,7 +26,7 @@ class PostDocumentSerializer(serializers.ModelSerializer):
         if obj.file and hasattr(obj.file, 'url'):
             return obj.file.url
         return None
-    
+
     def get_file_name(self, obj):
         if obj.file and hasattr(obj.file, 'name'):
             return obj.file.name.split('/')[-1]
@@ -138,26 +138,36 @@ class PasswordChangeSerializer(serializers.Serializer):
         return data
 
 
+
 class CommentSerializer(serializers.ModelSerializer):
-    # 1. ЕКСПЛИЦИТНО ДЕФИНИРАНО ПОЛЕ
-    # post_id е тук, за да вземе стойността 'id' от свързания пост
     username = serializers.CharField(source='user.username', read_only=True)
     post_id = serializers.IntegerField(source='post.id', read_only=True)
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=Comments.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    replies = serializers.SerializerMethodField()
 
     class Meta:
-        # 2. Трябва да имате модел
         model = Comments
+        fields = ['id', 'post_id', 'username', 'content', 'created_at', 'parent', 'replies']
+        read_only_fields = ['id', 'created_at', 'username', 'post_id', 'replies']
 
-        # 3. ❗ ТРЯБВА ДА ВКЛЮЧИТЕ post_id в списъка fields!
-        # DRF изисква това, защото сте го дефинирали в тялото на класа.
-        fields = ['id', 'post_id', 'username', 'content', 'created_at']
-        read_only_fields = ['id', 'created_at', 'username', 'post_id']
+    def get_replies(self, obj):
+        # Recursively serialize children comments
+        if obj.replies.exists():
+            # Pass the same context to the child serializer
+            return CommentSerializer(obj.replies.all(), many=True, context=self.context).data
+        return []
+
 
 
 class PollOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PollOption
-        fields = ['id','key', 'text'] 
+        fields = ['id','key', 'text']
 
 class PollQuestionSerializer(serializers.ModelSerializer):
     options = PollOptionSerializer(many=True, read_only=True)
@@ -175,7 +185,7 @@ class PollAnswerSerializer(serializers.ModelSerializer):
 class UserPollStatusSerializer(serializers.Serializer):
     is_locked = serializers.BooleanField()
     unlocks_at = serializers.DateTimeField(allow_null=True)
-    last_result = serializers.JSONField(allow_null=True) 
+    last_result = serializers.JSONField(allow_null=True)
     question = PollQuestionSerializer(allow_null=True)
 
 
@@ -308,4 +318,3 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
         fields = ['maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration', 'enable_program_page']
-

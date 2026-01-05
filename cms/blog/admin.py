@@ -53,7 +53,7 @@ class PostsAdmin(admin.ModelAdmin):
         documents = request.FILES.getlist('gallery_documents')
         for document in documents:
             PostDocument.objects.create(post=obj, file=document)
-        
+
         # Handle document deletion
         if 'delete_documents' in form.cleaned_data:
             documents_to_delete = form.cleaned_data['delete_documents']

@@ -17,7 +17,7 @@ def post_media_upload_path(instance, filename, field_type):
     elif hasattr(instance, 'pk') and instance.pk:
         # Instance is the main Post model and it has been saved.
         post_id = instance.pk
-    
+
     if post_id is None:
         # This handles a new, unsaved Post instance.
         # We generate a temporary UUID to group files for this new post.
@@ -32,7 +32,7 @@ def post_banner_upload_path(instance, filename):
 
 def post_gallery_upload_path(instance, filename):
     return post_media_upload_path(instance, filename, 'gallery')
-    
+
 def post_document_upload_path(instance, filename):
     return post_media_upload_path(instance, filename, 'documents')
 
@@ -79,6 +79,10 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="Потребителят, който е написал коментара.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и час на създаване на коментара. Формат: YYYY-MM-DD HH:MM:SS.")
     post = models.ForeignKey(Posts, on_delete=models.CASCADE, help_text="Публикацията, към която е коментарът.")
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies', help_text="Родителският коментар, ако този е отговор.")
+
+    class Meta:
+        ordering = ['created_at']
 
     def __str__(self):
         return self.content
@@ -343,5 +347,3 @@ class SiteSettings(models.Model):
         if not self.pk and SiteSettings.objects.exists():
             raise ValidationError('Може да съществува само един обект с настройки на сайта.')
         return super(SiteSettings, self).save(*args, **kwargs)
-
-

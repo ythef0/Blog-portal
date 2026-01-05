@@ -94,10 +94,10 @@ class PasswordChangeView(generics.UpdateAPIView):
 
 class AccountDeleteView(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    
+
     def get_object(self):
         return self.request.user
-    
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -179,7 +179,7 @@ class BellSongVoteView(APIView):
         song = get_object_or_404(BellSongSuggestion, pk=pk)
         if song.status != 'approved':
             return Response({'detail': 'Може да гласувате само за одобрени песни.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Check if user has already voted
         if request.user in song.voted_by.all():
             return Response({'detail': 'Вече сте гласували за тази песен.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -188,7 +188,7 @@ class BellSongVoteView(APIView):
         song.voted_by.add(request.user)
         song.votes += 1
         song.save(update_fields=['votes'])
-        
+
         # Pass context to serializer to access the request
         serializer = BellSongSuggestionSerializer(song, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -220,14 +220,15 @@ class CommentList(generics.ListAPIView):
         if not post_id:
             return Comments.objects.none()
         post = get_object_or_404(Posts, id=post_id)
-        return Comments.objects.filter(post=post).order_by('-created_at')
+        # Fetch only top-level comments. Replies will be nested by the serializer.
+        return Comments.objects.filter(post=post, parent__isnull=True).order_by('-created_at')
 class AddCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, post_pk):
         user = request.user
         now = timezone.now()
-        
+
         # Cooldown: 60 seconds between comments
         last_comment = Comments.objects.filter(user=user).order_by('-created_at').first()
         if last_comment:
@@ -271,7 +272,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
 
         user = request.user
         now = timezone.now()
-        
+
         active_question = PollQuestion.objects.filter(start_date__lte=now, end_date__gte=now).first()
 
         if not active_question:
@@ -316,10 +317,10 @@ class WeeklyPollViewSet(viewsets.ViewSet):
 
         question = serializer.validated_data['question']
         selected_option = serializer.validated_data['selected_option']
-        
+
         active_question = PollQuestion.objects.filter(
-            id=question.id, 
-            start_date__lte=now, 
+            id=question.id,
+            start_date__lte=now,
             end_date__gte=now
         ).first()
 
@@ -331,7 +332,7 @@ class WeeklyPollViewSet(viewsets.ViewSet):
 
         if PollAnswer.objects.filter(user=user, question=active_question).exists():
             return Response({"detail": "Вече сте отговорили на тази анкета."}, status=status.HTTP_403_FORBIDDEN)
-        
+
         PollAnswer.objects.create(user=user, question=active_question, selected_option=selected_option)
 
         correct_option = PollOption.objects.filter(question=active_question, is_correct=True).first()
@@ -422,7 +423,7 @@ class CheckUsernameView(APIView):
         username = request.query_params.get('username', None)
         if not username:
             return Response({'error': 'Username parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         is_available = not User.objects.filter(username__iexact=username).exists()
         return Response({'is_available': is_available})
 class ValidatePasswordView(APIView):
@@ -435,4 +436,3 @@ class ValidatePasswordView(APIView):
             return Response({'is_valid': True})
         except ValidationError as e:
             return Response({'is_valid': False, 'errors': e.messages}, status=status.HTTP_400_BAD_REQUEST)
-
