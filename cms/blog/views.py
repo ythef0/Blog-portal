@@ -131,6 +131,32 @@ class MyCommentDeleteView(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated, IsOwner)
 
 
+class MySongSuggestionDeleteView(generics.DestroyAPIView):
+    queryset = BellSongSuggestion.objects.all()
+    serializer_class = BellSongSuggestionSerializer
+    permission_classes = (IsAuthenticated, IsOwner)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.status != 'pending':
+            return Response({"detail": "Можете да триете само чакащи предложения."}, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MyMemeDeleteView(generics.DestroyAPIView):
+    queryset = MemeOfWeek.objects.all()
+    serializer_class = MemeOfWeekSerializer
+    permission_classes = (IsAuthenticated, IsOwner)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.is_approved:
+            return Response({"detail": "Можете да триете само неодобрени мемета."}, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class BellSongSuggestionCreateAPIView(generics.CreateAPIView):
     queryset = BellSongSuggestion.objects.all()
     serializer_class = BellSongSuggestionSerializer
@@ -194,7 +220,8 @@ class CommentList(generics.ListAPIView):
         if not post_id:
             return Comments.objects.none()
         post = get_object_or_404(Posts, id=post_id)
-        return Comments.objects.filter(post=post).order_by('-created_at')
+        # Fetch only top-level comments. Replies will be nested by the serializer.
+        return Comments.objects.filter(post=post, parent__isnull=True).order_by('-created_at')
 class AddCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 

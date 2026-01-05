@@ -79,6 +79,10 @@ class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, help_text="Потребителят, който е написал коментара.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Дата и час на създаване на коментара. Формат: YYYY-MM-DD HH:MM:SS.")
     post = models.ForeignKey(Posts, on_delete=models.CASCADE, help_text="Публикацията, към която е коментарът.")
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies', help_text="Родителският коментар, ако този е отговор.")
+
+    class Meta:
+        ordering = ['created_at']
 
     def __str__(self):
         return self.content
@@ -333,6 +337,7 @@ class SiteSettings(models.Model):
     enable_weekly_poll = models.BooleanField(default=True, verbose_name="Активирана 'Седмична анкета'", help_text="Активира/деактивира показването на седмичната анкета на сайта.")
     enable_meme_of_the_week = models.BooleanField(default=True, verbose_name="Активирано 'Меме на седмицата'", help_text="Позволява на потребителите да качват и гласуват за мемета.")
     enable_user_registration = models.BooleanField(default=True, verbose_name="Активирани 'Регистрации на потребители'", help_text="Позволява на нови потребители да се регистрират в системата.")
+    enable_program_page = models.BooleanField(default=True, verbose_name="Активирана страница 'Програма'", help_text="Показва или скрива страницата с учебната програма.")
 
     class Meta:
         verbose_name = "Настройки на сайта"
