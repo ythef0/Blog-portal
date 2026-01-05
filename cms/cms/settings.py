@@ -162,6 +162,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
 }
 
 # CORS settings for debugging - CAN BE TIGHTENED LATER
@@ -180,7 +183,7 @@ UNFOLD = {
             {
                 "icon": "diamond",
                 "title": ("Начална страница"),
-                "link": "http://127.0.0.1:8080/",
+                "link": "http://192.168.0.103/",
             },
             {
                 "icon": "folder",
