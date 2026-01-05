@@ -342,7 +342,7 @@ class ConsentRecordAdmin(admin.ModelAdmin):
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
     change_form_template = 'admin/site_settings_change_form.html'  # Custom template
-    list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration')
+    list_display = ('__str__', 'maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration', 'enable_program_page')
 
     class Media:
         css = {

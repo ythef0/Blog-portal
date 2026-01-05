@@ -307,5 +307,5 @@ class ConsentRecordSerializer(serializers.ModelSerializer):
 class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
-        fields = ['maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration']
+        fields = ['maintenance_mode', 'enable_bell_suggestions', 'enable_weekly_poll', 'enable_meme_of_the_week', 'enable_user_registration', 'enable_program_page']
 
