@@ -37,6 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     category_name = serializers.StringRelatedField(source='category')
     images = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
+    banner = serializers.SerializerMethodField()
 
     class Meta:
         model = Posts
@@ -56,6 +57,11 @@ class PostSerializer(serializers.ModelSerializer):
             'images',
             'documents' # Add documents here
         )
+
+    def get_banner(self, obj):
+        if obj.banner and hasattr(obj.banner, 'url'):
+            return obj.banner.url
+        return None
 
     def get_author_username(self, obj):
         return obj.author.username
