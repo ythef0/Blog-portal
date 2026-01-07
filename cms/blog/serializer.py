@@ -142,25 +142,34 @@ class PasswordChangeSerializer(serializers.Serializer):
 class CommentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     post_id = serializers.IntegerField(source='post.id', read_only=True)
-    parent = serializers.PrimaryKeyRelatedField(
-        queryset=Comments.objects.all(),
-        write_only=True,
-        required=False,
-        allow_null=True
-    )
-    replies = serializers.SerializerMethodField()
+    parent_id = serializers.PrimaryKeyRelatedField(source='parent', read_only=True)
+    parent_username = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Comments
-        fields = ['id', 'post_id', 'username', 'content', 'created_at', 'parent', 'replies']
-        read_only_fields = ['id', 'created_at', 'username', 'post_id', 'replies']
+        fields = ['id', 'post_id', 'username', 'content', 'created_at', 'parent', 'parent_id', 'parent_username', 'reply_count']
+        extra_kwargs = {
+            'parent': {'write_only': True, 'required': False, 'allow_null': True, 'queryset': Comments.objects.all()},
+        }
+        read_only_fields = ['id', 'created_at', 'username', 'post_id', 'parent_id', 'parent_username', 'reply_count']
 
-    def get_replies(self, obj):
-        # Recursively serialize children comments
-        if obj.replies.exists():
-            # Pass the same context to the child serializer
-            return CommentSerializer(obj.replies.all(), many=True, context=self.context).data
-        return []
+    def get_parent_username(self, obj):
+        if obj.parent:
+            return obj.parent.user.username
+        return None
+
+    def get_reply_count(self, obj):
+        if obj.parent is None:
+            return obj.replies.count()
+        return 0
+
+    def create(self, validated_data):
+        parent = validated_data.get('parent')
+        if parent and parent.parent:
+            validated_data['parent'] = parent.parent
+        
+        return super().create(validated_data)
 
 
 

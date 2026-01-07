@@ -220,8 +220,9 @@ class CommentList(generics.ListAPIView):
         if not post_id:
             return Comments.objects.none()
         post = get_object_or_404(Posts, id=post_id)
-        # Fetch only top-level comments. Replies will be nested by the serializer.
-        return Comments.objects.filter(post=post, parent__isnull=True).order_by('-created_at')
+        # Fetch all comments for the post, ordered by creation date.
+        # The frontend will be responsible for grouping replies.
+        return Comments.objects.filter(post=post).order_by('created_at')
 class AddCommentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
