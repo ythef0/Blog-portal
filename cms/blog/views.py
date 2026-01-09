@@ -118,6 +118,9 @@ class MyMemesView(generics.ListAPIView):
     def get_queryset(self):
         return MemeOfWeek.objects.filter(user=self.request.user)
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
 class MyCommentsView(generics.ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticated,)

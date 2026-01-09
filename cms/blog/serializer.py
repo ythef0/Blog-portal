@@ -309,12 +309,8 @@ class MemeOfWeekSerializer(serializers.ModelSerializer):
         }
 
     def get_image_url(self, obj):
-        request = self.context.get('request')
         if obj.image and hasattr(obj.image, 'url'):
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            else:
-                return obj.image.url # Fallback for contexts without request
+            return obj.image.url
         return None
 
     def get_has_voted(self, obj):
