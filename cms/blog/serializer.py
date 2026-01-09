@@ -228,7 +228,7 @@ class PollStatisticsSerializer(serializers.Serializer):
 class ContactSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactSubmission
-        fields = ['name', 'email', 'message']
+        fields = ['name', 'email', 'message', 'reason']
 
 
 class NotificationSerializer(serializers.ModelSerializer):

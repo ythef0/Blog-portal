@@ -220,14 +220,30 @@ class PollAnswer(models.Model):
 
 
 class ContactSubmission(models.Model):
+    REASON_CHOICES = [
+        ('general', 'Общо запитване'),
+        ('suggestion', 'Предложение за блога'),
+        ('technical_issue', 'Технически проблем'),
+        ('event_question', 'Въпрос за събитие'),
+        ('bug_report', 'Открит бъг'),
+        ('partnership', 'Партньорство/Сътрудничество'),
+
+    ]
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Потребител", help_text="Потребителят, изпратил съобщението (ако е логнат).")
     name = models.CharField(max_length=100, verbose_name="Име", help_text="Име на изпращача.")
     email = models.EmailField(verbose_name="Имейл", help_text="Имейл адрес на изпращача.")
+    reason = models.CharField(
+        max_length=20,
+        choices=REASON_CHOICES,
+        default='general',
+        verbose_name="Причина за контакт",
+        help_text="Причината, поради която потребителят се свързва."
+    )
     message = models.TextField(verbose_name="Съобщение", help_text="Съдържание на съобщението.")
     submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Изпратено на", help_text="Дата и час на изпращане. Формат: YYYY-MM-DD HH:MM:SS.")
 
     def __str__(self):
-        return f"Съобщение от {self.name} ({self.email})"
+        return f"Съобщение от {self.name} ({self.email}) относно '{self.get_reason_display()}'"
 
     class Meta:
         verbose_name = "Изпратен контактен формуляр"
