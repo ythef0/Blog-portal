@@ -180,16 +180,30 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PollOptionSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = PollOption
-        fields = ['id','key', 'text']
+        fields = ['id', 'key', 'text', 'image_url']
+
+    def get_image_url(self, obj):
+        if obj.image and hasattr(obj.image, 'url'):
+            return obj.image.url
+        return None
 
 class PollQuestionSerializer(serializers.ModelSerializer):
     options = PollOptionSerializer(many=True, read_only=True)
     id = serializers.IntegerField(read_only=False)
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = PollQuestion
-        fields = ['id', 'title', 'subtitle', 'code', 'options']
+        fields = ['id', 'title', 'subtitle', 'task_description', 'image_url', 'options']
+
+    def get_image_url(self, obj):
+        if obj.image and hasattr(obj.image, 'url'):
+            return obj.image.url
+        return None
 
 class PollAnswerSerializer(serializers.ModelSerializer):
     class Meta:

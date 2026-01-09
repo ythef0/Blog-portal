@@ -93,14 +93,34 @@ class PollOptionInline(admin.TabularInline):
     max_num = 4
     verbose_name = "Опция"
     verbose_name_plural = "Опции (Системата автоматично ще запази само един маркиран като 'верен' отговор и максимум до 4 отговора на анкета!)"
-    exclude = ('key',)
+    fields = ('key', 'text', 'image', 'image_preview', 'is_correct')
+    readonly_fields = ('key', 'image_preview')
+
+    def image_preview(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" style="max-width: 100px; max-height: 100px;" />')
+        return "Няма"
+    image_preview.short_description = "Преглед"
 
 @admin.register(PollQuestion)
 class PollQuestionAdmin(admin.ModelAdmin):
     list_display = ('title', 'start_date', 'end_date', 'created_at')
     list_filter = ('start_date', 'end_date')
-    search_fields = ('title', 'subtitle', 'code')
+    search_fields = ('title', 'subtitle', 'task_description')
     inlines = [PollOptionInline]
+    fields = ('title', 'subtitle', 'task_description', 'image', 'image_preview', 'start_date', 'end_date')
+    readonly_fields = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" style="max-width: 200px; max-height: 200px;" />')
+        return "Няма изображение"
+    image_preview.short_description = "Преглед на изображението"
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "task_description":
+            kwargs["widget"] = MarkdownWidget(attrs={"rows": 10})
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     def save_formset(self, request, form, formset, change):
         # Получаваме инстанциите, без да записваме в базата

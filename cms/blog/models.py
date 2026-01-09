@@ -39,6 +39,20 @@ def post_document_upload_path(instance, filename):
 def meme_upload_path(instance, filename):
     return f'memes/{instance.user.username}/{filename}'
 
+def poll_media_upload_path(instance, filename):
+    """
+    Generates an upload path for poll-related media.
+    """
+    # Check if we're dealing with a PollQuestion or a PollOption
+    if isinstance(instance, PollQuestion):
+        poll_id = instance.pk if instance.pk else uuid.uuid4().hex
+        return f'polls/{poll_id}/question/{filename}'
+    elif isinstance(instance, PollOption):
+        poll_id = instance.question.pk if instance.question.pk else uuid.uuid4().hex
+        return f'polls/{poll_id}/options/{filename}'
+    # Fallback path
+    return f'polls/unknown/{filename}'
+
 class Category(models.Model):
     full_name = models.CharField(max_length=100, help_text="Пълното име на категорията, което ще се показва на сайта.")
     short_name = models.SlugField(max_length=100, unique=True, help_text="Кратко име в URL съвместим формат (слаг). Например: 'novini-ot-uchilishte'.")
@@ -174,7 +188,8 @@ class Cookie(models.Model):
 class PollQuestion(models.Model):
     title = models.CharField(max_length=255, verbose_name="Заглавие", help_text="Заглавието на анкетата.")
     subtitle = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подзаглавие", help_text="Подзаглавие на анкетата (по избор).")
-    code = models.TextField(verbose_name="Код", help_text="Код или текст на въпроса, който може да се показва на потребителите.")
+    task_description = models.TextField(verbose_name="Описание на задачата", help_text="Текст на въпроса или описание на задачата.", blank=True, default='')
+    image = models.ImageField(upload_to=poll_media_upload_path, blank=True, null=True, verbose_name="Изображение към въпроса", help_text="Изображение, което се показва с въпроса.")
     start_date = models.DateTimeField(verbose_name="Начална дата", default=timezone.now, help_text="Дата и час, от които анкетата е активна. Формат: YYYY-MM-DD HH:MM:SS.")
     end_date = models.DateTimeField(verbose_name="Крайна дата", default=timezone.now, help_text="Дата и час, до които анкетата е активна. Формат: YYYY-MM-DD HH:MM:SS.")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Създаден на", help_text="Дата и час на създаване на анкетата. Формат: YYYY-MM-DD HH:MM:SS.")
@@ -191,6 +206,7 @@ class PollQuestion(models.Model):
 class PollOption(models.Model):
     question = models.ForeignKey(PollQuestion, related_name='options', on_delete=models.CASCADE, verbose_name="Въпрос", help_text="Въпросът, към който принадлежи тази опция.")
     text = models.CharField(max_length=255, verbose_name="Текст на опция", help_text="Текстът на отговора.")
+    image = models.ImageField(upload_to=poll_media_upload_path, blank=True, null=True, verbose_name="Изображение към опция", help_text="Изображение, което се показва с тази опция.")
     is_correct = models.BooleanField(default=False, verbose_name="Правилен отговор", help_text="Отбележете, ако това е правилният отговор на въпроса.")
     key = models.CharField(max_length=1, choices=[('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D')], verbose_name="Ключ", help_text="Буквеният ключ за тази опция (a, b, c, d).")
 
