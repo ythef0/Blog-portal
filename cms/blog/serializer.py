@@ -144,6 +144,19 @@ class PasswordChangeSerializer(serializers.Serializer):
         return data
 
 
+class UsernameChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(style={"input_type": "password"}, required=True)
+    new_username = serializers.CharField(required=True)
+
+    def validate_new_username(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(username__iexact=value).exists():
+            raise serializers.ValidationError("Това потребителско име вече е заето.")
+        return value
+
+
+
+
 
 class CommentSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)

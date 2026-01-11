@@ -18,7 +18,7 @@ from .serializer import (
     PollStatisticsSerializer, ContactSubmissionSerializer, NotificationSerializer,
     EventSerializer, TermsOfServiceSerializer, BellSongSuggestionSerializer,
     PrivacyPolicySerializer, MemeOfWeekSerializer, ConsentRecordSerializer, SiteSettingsSerializer,
-    ChangelogSerializer, PasswordChangeSerializer
+    ChangelogSerializer, PasswordChangeSerializer, UsernameChangeSerializer
 )
 
 def get_client_ip(request):
@@ -88,6 +88,31 @@ class PasswordChangeView(generics.UpdateAPIView):
             self.object.set_password(serializer.data.get("new_password"))
             self.object.save()
             return Response({"status": "Паролата е сменена успешно"}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UsernameChangeView(generics.UpdateAPIView):
+    serializer_class = UsernameChangeSerializer
+    model = User
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check current password
+            if not self.object.check_password(serializer.data.get("current_password")):
+                return Response({"current_password": ["Грешна парола."]}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Change username
+            self.object.username = serializer.data.get("new_username")
+            self.object.save()
+            return Response({"status": "Потребителското име е сменено успешно"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

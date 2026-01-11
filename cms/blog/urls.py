@@ -22,6 +22,7 @@ urlpatterns = [
     path('auth/check-username/', blog_views.CheckUsernameView.as_view(), name='check-username'),
     path('auth/validate-password/', blog_views.ValidatePasswordView.as_view(), name='validate-password'),
     path('auth/profile/change-password/', blog_views.PasswordChangeView.as_view(), name='password-change'),
+    path('auth/profile/change-username/', blog_views.UsernameChangeView.as_view(), name='username-change'),
     path('auth/profile/delete/', blog_views.AccountDeleteView.as_view(), name='account-delete'),
 
     # Пътища за съдържание на потребителя
