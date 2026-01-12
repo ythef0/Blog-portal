@@ -88,11 +88,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True
     )
+    
+    captcha_num1 = serializers.IntegerField(write_only=True, required=True)
+    captcha_num2 = serializers.IntegerField(write_only=True, required=True)
+    captcha_answer = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
         # Включваме class_name в списъка fields, въпреки че не е част от User модела
-        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name')
+        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name', 'captcha_num1', 'captcha_num2', 'captcha_answer')
 
         # Правим тези полета задължителни
         extra_kwargs = {
@@ -107,8 +111,23 @@ class RegisterSerializer(serializers.ModelSerializer):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Паролите не съвпадат."})
 
+        captcha_num1 = attrs.get('captcha_num1')
+        captcha_num2 = attrs.get('captcha_num2')
+        captcha_answer = attrs.get('captcha_answer')
+
+        try:
+            answer = int(captcha_answer)
+            if captcha_num1 + captcha_num2 != answer:
+                raise serializers.ValidationError({"captcha": "Грешен отговор на задачата за проверка."})
+        except (ValueError, TypeError):
+            raise serializers.ValidationError({"captcha": "Моля, въведете числов отговор."})
+
+
         # Премахваме password2, тъй като не ни е нужно повече
         attrs.pop('password2')
+        attrs.pop('captcha_num1')
+        attrs.pop('captcha_num2')
+        attrs.pop('captcha_answer')
         return attrs
 
     # Метод за създаване на обекта (User и UserProfile)
