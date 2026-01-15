@@ -117,16 +117,17 @@ class UsernameChangeView(generics.UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AccountDeleteView(generics.DestroyAPIView):
+class AccountDeactivateView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
 
-    def destroy(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"status": "Профилът е изтрит успешно"}, status=status.HTTP_204_NO_CONTENT)
+        instance.is_active = False
+        instance.save()
+        return Response({"status": "Профилът е деактивиран успешно"}, status=status.HTTP_200_OK)
 
 
 class MySongSuggestionsView(generics.ListAPIView):
