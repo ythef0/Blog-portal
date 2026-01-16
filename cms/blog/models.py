@@ -103,10 +103,10 @@ class Comments(models.Model):
 
 
 SLOT_CHOICES = (
-    ('start_class', 'Начало на час'),
-    ('end_class', 'Край на час'),
-    ('before_lunch', 'Преди голямо междучасие'),
-    ('after_lunch', 'След голямо междучасие'),
+    ('startClass', 'Начало на час'),
+    ('endClass', 'Край на час'),
+    ('beforeLunch', 'Преди голямо междучасие'),
+    ('afterLunch', 'След голямо междучасие'),
     ('morning', 'Сутрешен звънец'), # Default
     ('special', 'Специален повод'),
 )
